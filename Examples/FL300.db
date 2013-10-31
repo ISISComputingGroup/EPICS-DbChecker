@@ -1,0 +1,59 @@
+record(stringin, "$(P)VERSION")
+{
+    field(DTYP, "stream")
+    field(INP,  "@julaboCommon.proto getVersion $(PORT)")
+    field(PINI, "YES")
+}
+
+record(stringin, "$(P)STATUS")
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@julaboCommon.proto getStatus $(PORT)")
+}
+
+record(ai, "$(P)TEMP:SP:RBV") 
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@julaboCommon.proto readSetTemp $(PORT)")
+    field(PREC, "1")
+    #field(EGU,  "C")
+}
+
+record(ai, "$(P)TEMP") 
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@julaboCommon.proto readInternalTemp $(PORT)")
+    field(PREC, "1")
+    #field(EGU,  "C")
+}
+
+record(ao, "$(P)TEMP:SP") 
+{
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+    field(OUT,  "@julaboCommon.proto writeTemp $(PORT)")
+    #field(EGU, "C")
+    field(PREC, "1")
+}
+
+record(bi, "$(P)MODE") 
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@julaboCommon.proto readRunMode $(PORT)")
+    field(ZNAM, "OFF")
+    field(ONAM, "ON")
+}
+
+record(bo, "$(P)MODE:SP") 
+{
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+    field(OUT,  "@julaboCommon.proto setRunMode $(PORT)")
+    field(ZNAM, "OFF")
+    field(ONAM, "ON")
+    field(VAL, 0)
+}

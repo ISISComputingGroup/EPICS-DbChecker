@@ -1,0 +1,44 @@
+record(ai, "$(P)AC:TS1:BEAM:CURR")
+{
+   field(DTYP, "asynFloat64")
+   field(INP,  "@asyn(isisbeam,0,0)BEAMTS1")
+   field(PREC, "3")
+   field(SCAN, "I/O Intr")
+#   field(TSE, -2)
+}
+
+record(ai, "$(P)AC:TS2:BEAM:CURR")
+{
+   field(DTYP, "asynFloat64")
+   field(INP,  "@asyn(isisbeam,0,0)BEAMTS2")
+   field(PREC, "3")
+   field(SCAN, "I/O Intr")
+#   field(TSE, -2)
+}
+
+record(ai, "$(P)AC:EPB1:BEAM:CURR")
+{
+   field(DTYP, "asynFloat64")
+   field(INP,  "@asyn(isisbeam,0,0)BEAMEPB1")
+   field(PREC, "3")
+   field(SCAN, "I/O Intr")
+#   field(TSE, -2)
+}
+
+record(ai, "$(P)TG:TS1:MOD:METH:TEMP")
+{
+   field(DTYP, "asynFloat64")
+   field(INP,  "@asyn(isisbeam,0,0)METHTS1")
+   field(PREC, "3")
+   field(SCAN, "I/O Intr")
+#   field(TSE, -2)
+}
+
+record(ai, "$(P)TG:TS1:MOD:HDGN:TEMP")
+{
+   field(DTYP, "asynFloat64")
+   field(INP,  "@asyn(isisbeam,0,0)HDGNTS1")
+   field(PREC, "3")
+   field(SCAN, "I/O Intr")
+#   field(TSE, -2)
+}

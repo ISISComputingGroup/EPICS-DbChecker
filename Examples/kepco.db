@@ -1,0 +1,114 @@
+record(stringin, "$(P)IDN")
+{
+    field(DESC, "SCPI identification string")
+    field(DTYP, "stream")
+    field(INP,  "@kepco.proto getIDN $(PORT)")
+    field(PINI, "YES")
+    field(FLNK, "$(P)REMOTE")
+}
+
+record(bo, "$(P)REMOTE") 
+{
+    #Must be put into remote before PSU related commands sent
+    field(DESC, "Put the unit into remote mode")
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+    field(OUT,  "@kepco.proto setRemote $(PORT)")
+    field(ZNAM, "OFF")
+    field(ONAM, "ON")
+    field(VAL, "1")
+}
+
+record(ai, "$(P)CURRENT:RB") 
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@kepco.proto readActualCurrent $(PORT)")
+    field(PREC, "3")
+    field(EGU,  "A")
+}
+
+record(ai, "$(P)CURRENT:SP") 
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@kepco.proto readSetpointCurrent $(PORT)")
+    field(PREC, "3")
+    field(EGU,  "A")
+}
+
+record(ao, "$(P)CURRENT") 
+{
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+    field(OUT,  "@kepco.proto writeCurrent $(PORT)")
+    field(EGU, "A")
+    #field(HOPR, "5.0")
+    #field(LOPR, "0.01")    
+    field(PREC, "3")
+}
+
+record(ai, "$(P)VOLTAGE:RB") 
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@kepco.proto readActualVoltage $(PORT)")
+    field(PREC, "3")
+    field(EGU,  "A")
+}
+
+record(ai, "$(P)VOLTAGE:SP") 
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@kepco.proto readSetpointVoltage $(PORT)")
+    field(PREC, "3")
+    field(EGU,  "A")
+}
+
+record(ao, "$(P)VOLTAGE") 
+{
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+    field(OUT,  "@kepco.proto writeVoltage $(PORT)")
+    field(EGU, "A")
+    #field(HOPR, "5.0")
+    #field(LOPR, "0.01")    
+    field(PREC, "3")
+}
+
+record(bi, "$(P)MODE:RB") 
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@kepco.proto readOutputMode $(PORT)")
+    field(ZNAM, "VOLTAGE")
+    field(ONAM, "CURRENT")
+}
+
+record(bo, "$(P)MODE") 
+{
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+    field(OUT,  "@kepco.proto setOutputMode $(PORT)")
+    field(ZNAM, "VOLTAGE")
+    field(ONAM, "CURRENT")
+}
+
+record(bi, "$(P)OUTPUTSTATUS:RB") 
+{
+    field(SCAN, "1 second")
+    field(DTYP, "stream")
+    field(INP,  "@kepco.proto readOutputStatus $(PORT)")
+    field(ZNAM, "OFF")
+    field(ONAM, "ON")
+}
+
+record(bo, "$(P)OUTPUTSTATUS") 
+{
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+    field(OUT,  "@kepco.proto setOutputStatus $(PORT)")
+    field(ZNAM, "OFF")
+    field(ONAM, "ON")
+}
