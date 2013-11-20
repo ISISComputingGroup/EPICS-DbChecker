@@ -10,7 +10,7 @@ import re
 #Underscores:
 # a) Allowed if used for making a name clearer, e.g. X_POSITION
 # b) Not allowed to use the underscore instead of a ':', e.g. TEMP_SP_RB
-#Regarding b) if the Db file contains no colons then it will have failed under rule 2)
+#Regarding b) if the Db file contains no colons then currently it will fail under rule 2) - this will need to be sorted out at some point
 
 class RecordGroup:
     def __init__(self, stem):
@@ -75,29 +75,25 @@ class DbChecker:
         print "\n** CHECKING", self.file, "**"
         names = self.extract_names(self.file)
         #print names
-        if self.check_for_colons(names):
-            records = self.gather_groups(names)
+        records = self.gather_groups(names)
                     
-            for r in records:
-                r.check_case()
-                r.check_chars()
-                r.check_stem()
-                r.check_candidates()
+        for r in records:
+            r.check_case()
+            r.check_chars()
+            r.check_stem()
+            r.check_candidates()
                 
-                for w in r.warnings:
-                    print w
+            for w in r.warnings:
+                print w
                     
-                for e in r.errors:
-                    print e
+            for e in r.errors:
+                print e
                 
-                self.errorcount += len(r.errors)
-                self.warningcount += len(r.warnings)
+            self.errorcount += len(r.errors)
+            self.warningcount += len(r.warnings)
                 
-            print "** WARNING COUNT =", self.warningcount, "**"
-            print "** ERROR COUNT =", self.errorcount, "**"
-        else:
-            print "FORMAT ERROR: No colons used in Db file"
-            print "** ERROR COUNT = 1 **"        
+        print "** WARNING COUNT =", self.warningcount, "**"
+        print "** ERROR COUNT =", self.errorcount, "**"     
 
     def extract_names(self, file):
         #This regex matches the EPICS convention for PV names, e.g. a-z A-Z 0-9 _ - : [ ] < > ;
