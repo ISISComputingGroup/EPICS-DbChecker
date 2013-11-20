@@ -1,29 +1,39 @@
+#A read-only parameter
+#ALLOWED
+record(ai, "$(P)READONLY") 
+
 #Underscore used instead of colon
+#NOT ALLOWED
 record(ai, "$(P)TEMP") 
 record(ai, "$(P)TEMP:SP") 
 record(ai, "$(P)TEMP:SP_RBV") 
 
 #Underscore used instead of colon
+#NOT ALLOWED
 record(ai, "$(P)TEMP1") 
 record(ai, "$(P)TEMP1_SP") 
 record(ai, "$(P)TEMP1_SP_RBV") 
 
 #Underscore used instead of final colon
+#NOT ALLOWED
 record(ai, "$(P)TEST:TEST") 
 record(ai, "$(P)TEST:TEST_SP") 
 record(ai, "$(P)TEST:TEST_SP_RBV")
 
 #Underscore used for clarity
+#ALLOWED
 record(ai, "$(P)TEST_TEST") 
 record(ai, "$(P)TEST_TEST:SP") 
 record(ai, "$(P)TEST_TEST:SP:RBV")
 
 #Underscore used for clarity and instead of final colon
+#NOT ALLOWED
 record(ai, "$(P)BLAH_BLAH") 
 record(ai, "$(P)BLAH_BLAH_SP") 
 record(ai, "$(P)BLAH_BLAH_SP_RBV")
 
 #Similar stems
+#ALLOWED
 record(ai, "$(P)X")
 record(ai, "$(P)X:SP")
 record(ai, "$(P)X:SP:RBV")
@@ -32,11 +42,30 @@ record(ai, "$(P)X:POS:SP")
 record(ai, "$(P)X:POS:SP:RBV")
 
 #Misspelt 
+#NOT ALLOWED
 record(ai, "$(P)Y")
 record(ai, "$(P)Y:SETP")
 record(ai, "$(P)Y:SETP:RBV")
 
 #Wrong convention - RBV gets current value, SP get current setpoint
+#NOT ALLOWED
 record(ai, "$(P)Z")
 record(ai, "$(P)Z:SP")
 record(ai, "$(P)Z:RBV")
+
+#SP only - e.g. a push button who's status cannot be read.
+#This is allowed as long as it has an alias
+#ALLOWED
+record(ai, "$(P)PUSHBUTTON:SP")
+alias("$(P)PUSHBUTTON:SP", "$(P)PUSHBUTTON") 
+
+#SP only - e.g. a push button who's status cannot be read.
+#This is not allowed here because there is no alias
+#NOT ALLOWED
+record(ai, "$(P)PUSHBUTTON_1:SP")
+
+#Aliased SP:RBV. Used for something that changes immediately like Voltage on/off
+#ALLOWED
+record(bi, "$(P)VOLTAGE_ON") 
+record(bo, "$(P)VOLTAGE_ON:SP") 
+alias("$(P)VOLTAGE_ON", "$(P)VOLTAGE_ON:SP:RBV")
