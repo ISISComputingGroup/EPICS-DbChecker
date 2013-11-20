@@ -6,14 +6,11 @@ import re
 # 3) Names only use alphanumerics, underscore and colon
 # 4) Adheres to :SP and SP:RBV format
 # 5) If DUMMYPV and DUMMYPV:SP exists then DUMMYPV:SP:RBV should exist too (DUMMYPV:SP:RBV might be an alias).
-# 6) If DUMMYPV:SP exists on its own that is okay - it is probably a push button who's status cannot be read, but it should have an alias for DUMMYPV
+# 6) If DUMMYPV:SP exists on its own that is okay - it is probably a push button who's status cannot be read, but it should have a SP:RBV alias for DUMMYPV
 # 7) If DUMMYPV exists on its own it is okay (represents a read-only parameter)
-
-# NOTE: NOT CURRENTLY CHECKING FOR ALIASES - THIS WILL BE A MAJOR CHANGE!
-
-#Underscores:
-# a) Allowed if used for making a name clearer, e.g. X_POSITION
-# b) Not allowed to use the underscore instead of a ':', e.g. DUMMYPV_SP_RB
+# 8) Underscores:
+#        a) Allowed if used for making a name clearer, e.g. X_POSITION
+#        b) Not allowed to use the underscore instead of a ':', e.g. DUMMYPV_SP_RB
 
 class RecordGroup:
     def __init__(self, stem):
