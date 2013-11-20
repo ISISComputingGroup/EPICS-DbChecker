@@ -10,7 +10,6 @@ import re
 #Underscores:
 # a) Allowed if used for making a name clearer, e.g. X_POSITION
 # b) Not allowed to use the underscore instead of a ':', e.g. TEMP_SP_RB
-#Regarding b) if the Db file contains no colons then currently it will fail under rule 2) - this will need to be sorted out at some point
 
 class RecordGroup:
     def __init__(self, stem):
