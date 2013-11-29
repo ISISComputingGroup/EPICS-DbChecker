@@ -1,4 +1,7 @@
 import re
+import argparse
+import os
+import glob
 
 #Rules implemented:
 # 1) Name should be uppercase
@@ -68,7 +71,7 @@ class RecordGroup:
                     self.errors.append("FORMAT ERROR: " + self.candidates[0] + " does not have an alias called " + self.stem)
                     return
             #Or it could be a read-only value, so has no SP or SP:RBV which is okay
-            if self.candidates[0] == self.stem:
+            if len(self.aliases) == 0 and self.candidates[0] == self.stem:
                 return
         
         #Check for :SP or :SP:RBV
@@ -89,7 +92,8 @@ class RecordGroup:
         
         if len(self.candidates) > 1 and self.SP == "":
             self.errors.append("FORMAT ERROR: " + self.stem + " does not have a correctly formatted :SP and/or :SP:RBV")
-        #If a group has a SP then it should have a SP:RB
+        #If a group has a SP then it should have a SP:RBV
+
         if self.SP != "" and self.SP_RBV == "":
             self.errors.append("PARAMETER ERROR: " + self.stem + " has a :SP but not a :SP:RBV")
         
@@ -186,7 +190,9 @@ class DbChecker:
         reclist = []
         for key, value in records.iteritems():
             reclist.append(value)
-                    
+        
+        reclist.sort()
+        
         return reclist
         
     def check_for_colons(self, names):
@@ -231,9 +237,9 @@ class DbChecker:
         #Now find the related names
         for name, type, parent in names:
             for s in records.keys():
-                ma1 = re.search(s + "[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name)
-                ma2 = re.search(s + "[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
-                ma3 = re.search(s + "[_:](RBV|RB|READBACK|READ)$", name)
+                ma1 = re.search("^" + s + "[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name)
+                ma2 = re.search("^" + s + "[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
+                ma3 = re.search("^" + s + "[_:](RBV|RB|READBACK|READ)$", name)
                 if ma1 != None or ma2 != None or ma3 != None:
                     if parent is None:
                         #Is a real PV
@@ -243,12 +249,16 @@ class DbChecker:
                         records[s].aliases.append(name)
                 elif s == name:
                     #Also, add the readback (e.g. DUMMYPV) to the group if it exists
-                    records[s].candidates.append(name)
+                    if parent is None:
+                        records[s].candidates.append(name)
+                    else:
+                        #Is an alias PV
+                        records[s].aliases.append(name)
                     
         if self.debug:
             print "GROUPS:"
             for s in records.keys():
-                print records[s]
+                print records[s].stem, records[s].candidates, records[s].aliases
         
         #Convert records to list
         reclist = []
@@ -256,23 +266,39 @@ class DbChecker:
             reclist.append(value)
         
         return reclist  
+        
+def check_files(files, verbose):
+    for f in files:
+        try:
+            fp = os.path.abspath(f)
+            dbc = DbChecker(fp, verbose)
+            dbc.check()
+        except IOError:
+            print "FILE ERROR: File", f, "does not exist"
 
 if __name__ == '__main__':   
-    #testfile = "./Examples/Agilent_33220A.db"   #Underscores used instead of colons
-    #testfile = "./Examples/kepco.db"   #Incorrect SP:RBV
-    #testfile = "./Examples/FL300.db"   #Has an SP but no SP:RBV
-    #testfile = "./Examples/isisbeam.db"     #Is fine
-    #testfile = "./Examples/examples.db"
-    testfile = "test_db.db"
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--directory', nargs=1, default=[], help='The directory to search for db files in')
+    parser.add_argument('-f', '--files',  nargs='*', default=[], help='The db file(s) to test')
+    parser.add_argument('-r', '--recursive', action='store_true', help='Check all db files below the specified directory')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Run in verbose mode')
+    args = parser.parse_args()
     
-    checker = DbChecker(testfile)
-    checker.check()
-
-
-        
-
-
-    
-    
-
-        
+    if len(args.directory) == 0 and  len(args.files) == 0:
+        parser.print_help()
+    else:     
+        if len(args.files) > 0:
+            check_files(args.files, args.verbose)
+        if len(args.directory) > 0:
+            if args.recursive:
+                tocheck = []
+                for root, dirs, files in os.walk(args.directory[0]):
+                    for file in files:
+                        if file.endswith(".db"):
+                            tocheck.append(os.path.join(root, file))
+                check_files(tocheck, args.verbose)
+            else:
+                #Find db files in directory
+                os.chdir(args.directory[0])
+                files = glob.glob("*.db")
+                check_files(files, args.verbose)
