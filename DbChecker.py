@@ -22,6 +22,7 @@ class RecordGroup:
         self.SP_RBV = ""
         self.warnings = []
         self.errors = []
+        self.type = ""
     
     def check_case(self):
         #Names should be upper-case
@@ -101,8 +102,8 @@ class DbChecker:
         
     def check(self):
         print "\n** CHECKING", self.file, "**"
-        names, aliases = self.extract_names(self.file)
-        records = self.gather_groups(names, aliases)
+        names = self.extract_names(self.file)
+        records = self.gather_groups(names)
                     
         for r in records:
             r.check_case()
@@ -122,10 +123,10 @@ class DbChecker:
         print "** WARNING COUNT =", self.warningcount, "**"
         print "** ERROR COUNT =", self.errorcount, "**"     
 
-    def extract_names(self, file):
+    def extract_names(self, file, remove_macro=True):
         #This regex matches the EPICS convention for PV names, e.g. a-z A-Z 0-9 _ - : [ ] < > ;
         #This is not the same as the ISIS convention which is a-z A-Z 0-9 _ : this constraint will be checked later
-        regPV = 'record\(\w+,\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
+        regPV = 'record\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
         
         #This regex looks for any aliases defined
         #The format is:
@@ -137,39 +138,56 @@ class DbChecker:
         f=open(file, 'r')
 
         #Collect all the record names
-        names = []
-        aliases = []
+        records = {}
         for line in f:
             #print line
             maPV = re.match(regPV, line)
             maAlias1 = re.match(regAlias_inside, line)
             maAlias2 = re.match(regAlias_alone, line)
-
+            
             if not (maPV is None):
-                pvname = maPV.groups()[0]
+                type = maPV.groups()[0]
+                pvname = maPV.groups()[1]
                 #remove any macros
-                if pvname.find('$') != -1:
+                if remove_macro and pvname.find('$') != -1:
                     left = pvname.rfind(')') + 1
                     pvname = pvname[left:]
-                    names.append(pvname)
+                records[pvname] = (pvname, type, None)
                     
             if not (maAlias1 is None):
-                pvname = maAlias1.groups()[0]
+                alias = maAlias1.groups()[0]
                 #remove any macros
-                if pvname.find('$') != -1:
-                    left = pvname.rfind(')') + 1
-                    pvname = pvname[left:]
-                    aliases.append(pvname)
+                if remove_macro and alias.find('$') != -1:
+                    left = alias.rfind(')') + 1
+                    alias = alias[left:]
+                records[alias] = (alias, type, pvname)
             
             if not (maAlias2 is None):
-                pvname = maAlias2.groups()[1]
+                parent = maAlias2.groups()[0]
+                alias = maAlias2.groups()[1]
                 #remove any macros
-                if pvname.find('$') != -1:
-                    left = pvname.rfind(')') + 1
-                    pvname = pvname[left:]
-                    aliases.append(pvname)
+                if remove_macro and alias.find('$') != -1:
+                    left = alias.rfind(')') + 1
+                    alias = alias[left:]
+                if remove_macro and parent.find('$') != -1:
+                    left = parent.rfind(')') + 1
+                    parent = parent[left:]
+                #Don't necessarily know the type at the moment
+                records[alias] = (alias, None, pvname)
+        
+        #Find types for aliases when not found
+        for a in records.keys():
+            if records[a][1] is None and len(records[a]) ==3:
+                parent = records[a][2]
+                type = records[parent][1]
+                records[a] = (a, type, parent)
+                
+        #Convert records to list
+        reclist = []
+        for key, value in records.iteritems():
+            reclist.append(value)
                     
-        return (names, aliases)
+        return reclist
         
     def check_for_colons(self, names):
         #If there are no colons present then almost certainly the Db file is incorrect
@@ -179,67 +197,65 @@ class DbChecker:
                 return True
         return False
             
-    def gather_groups(self, names, aliases):
+    def gather_groups(self, names):
         #Gathering the groups together
-        records = []
-        stems = {}
+        records = {}
         
         #Find potential stems
-        for name in names:
-            ma1 = re.match("(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name)
-            ma2 = re.match("(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
-            #ma3 = re.search("[_:](RBV|RB|READBACK|READ)$", name)
-            if ma1 is None and ma2 is None:
-                #Something like DUMMYPV would get here
-                if not (name in stems.keys()):
-                    stems[name] = ([], [])
-                    continue
-            else:
-                #Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
-                if not (ma1 is None):
-                    s = ma1.groups()[0]
-                    if not (s in stems.keys()):
-                        stems[s] = ([], [])
+        for name, type, parent in names:
+            if parent is None:
+                ma1 = re.match("(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name)
+                ma2 = re.match("(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
+                #ma3 = re.search("[_:](RBV|RB|READBACK|READ)$", name)
+                if ma1 is None and ma2 is None:
+                    #Something like DUMMYPV would get here
+                    if not (name in records.keys()):
+                        records[name] = RecordGroup(name)
+                        records[name].type = type
                         continue
-                elif not (ma2 is None):
-                    s = ma2.groups()[0]
-                    if not (s in stems.keys()):
-                        stems[s] = ([], [])
-                        continue
+                else:
+                    #Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
+                    if not (ma1 is None):
+                        s = ma1.groups()[0]
+                        if not (s in records.keys()):
+                            records[s] = RecordGroup(s)
+                            records[s].type = type
+                            continue
+                    elif not (ma2 is None):
+                        s = ma2.groups()[0]
+                        if not (s in records.keys()):
+                            records[s] = RecordGroup(s)
+                            records[s].type = type
+                            continue
 
         #Now find the related names
-        for name in names:
-            for s in stems.keys():
+        for name, type, parent in names:
+            for s in records.keys():
                 ma1 = re.search(s + "[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name)
                 ma2 = re.search(s + "[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
                 ma3 = re.search(s + "[_:](RBV|RB|READBACK|READ)$", name)
                 if ma1 != None or ma2 != None or ma3 != None:
-                    stems[s][0].append(name)
+                    if parent is None:
+                        #Is a real PV
+                       records[s].candidates.append(name)
+                    else:
+                        #Is an alias PV
+                        records[s].aliases.append(name)
                 elif s == name:
                     #Also, add the readback (e.g. DUMMYPV) to the group if it exists
-                    stems[s][0].append(name)
-        
-        #Check for related aliases
-        for alias in aliases:
-            for s in stems.keys():
-                ma1 = re.search(s + "[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", alias)
-                ma2 = re.search(s + "[_:](SP|SETPOINT|SETP|SEP|SETPT)$", alias)
-                ma3 = re.search(s + "[_:](RBV|RB|READBACK|READ)$", alias)
-                if ma1 != None or ma2 != None or ma3 != None or alias == s:
-                    stems[s][1].append(alias)
-        
-        #Finally create the record objects
-        for s in stems.keys():
-            r = RecordGroup(s)
-            r.candidates = stems[s][0]
-            r.aliases = stems[s][1]
-            records.append(r)
-
+                    records[s].candidates.append(name)
+                    
         if self.debug:
             print "GROUPS:"
-            for s in stems.keys():
-                print stems[s]
-        return records    
+            for s in records.keys():
+                print records[s]
+        
+        #Convert records to list
+        reclist = []
+        for key, value in records.iteritems():
+            reclist.append(value)
+        
+        return reclist  
 
 if __name__ == '__main__':   
     #testfile = "./Examples/Agilent_33220A.db"   #Underscores used instead of colons
@@ -247,7 +263,7 @@ if __name__ == '__main__':
     #testfile = "./Examples/FL300.db"   #Has an SP but no SP:RBV
     #testfile = "./Examples/isisbeam.db"     #Is fine
     #testfile = "./Examples/examples.db"
-    testfile = "./Examples/Stanford_PS350.db"
+    testfile = "test_db.db"
     
     checker = DbChecker(testfile)
     checker.check()
