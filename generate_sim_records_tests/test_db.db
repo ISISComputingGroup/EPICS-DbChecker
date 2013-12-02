@@ -1,0 +1,68 @@
+
+record(stringin, "$(P)IDN")
+{
+    field(DESC, "SCPI identification string")
+    field(DTYP, "stream")
+    field(INP,  "@devAFG3XXX.proto getIDN $(PORT)")
+}
+
+### CHANNEL 1 ###
+
+record(bi, "$(P)OUTPUT1:STATUS")
+{
+    field(DTYP, "stream")
+    field(INP,  "@devAFG3XXX.proto getStatus(1) $(PORT)")
+    field(SCAN, "1 second")
+    field(ZNAM, "OFF")
+    field(ONAM, "ON")	
+}
+
+record(bo, "$(P)OUTPUT1:STATUS:SP")
+{
+    field(DTYP, "stream")
+    field(OUT,  "@devAFG3XXX.proto setStatus(1) $(PORT)")
+    field(ZNAM, "OFF")
+    field(ONAM, "ON")	
+}
+
+alias("$(P)OUTPUT1:STATUS", "$(P)OUTPUT1:STATUS:SP:RBV")
+
+record(mbbi, "$(P)OUTPUT1:FUNC")
+{
+    field(DTYP, "stream")
+    field(INP,  "@devAFG3XXX.proto getFunction(1) $(PORT)")
+    field(SCAN, "1 second")	
+    field(ZRST, "SIN")
+    field(ONST, "SQU")
+    field(TWST, "PULS")
+    field(THST, "RAMP")
+    field(FRST, "PRN")
+    field(FVST, "DC")
+    field(SXST, "SINC")
+    field(SVST, "GAUS")
+    field(EIST, "LOR")
+    field(NIST, "ERIS")
+    field(TEST, "EDEC")
+    field(ELST, "HAV")
+}
+
+record(mbbo, "$(P)OUTPUT1:FUNC:SP")
+{
+    field(DTYP, "stream")
+    field(OUT,  "@devAFG3XXX.proto setFunction(1) $(PORT)")
+    field(ZRST, "SIN")
+    field(ONST, "SQU")
+    field(TWST, "PULS")
+    field(THST, "RAMP")
+    field(FRST, "PRN")
+    field(FVST, "DC")
+    field(SXST, "SINC")
+    field(SVST, "GAUS")
+    field(EIST, "LOR")
+    field(NIST, "ERIS")
+    field(TEST, "EDEC")
+    field(ELST, "HAV")
+}
+
+alias("$(P)OUTPUT1:FUNC", "$(P)OUTPUT1:FUNC:SP:RBV")
+
