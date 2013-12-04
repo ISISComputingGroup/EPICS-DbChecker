@@ -1,4 +1,5 @@
 import re
+import argparse
 from db_parser import parse_db
 from records import Record, Alias
 from grouper import Grouper, RecordGroup
@@ -62,7 +63,7 @@ def generate_sim_records(db_read):
         
     return output
 
-def modify_db(file_in, file_out="generated.db", records={}, insert_sims=True, insert_disable=True):
+def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sims=True, insert_disable=True):
     regRecordStart = 'record\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
     
     fin=open(file_in, 'r')
@@ -128,6 +129,17 @@ def modify_db(file_in, file_out="generated.db", records={}, insert_sims=True, in
     
     
 if __name__ == '__main__':   
-    testfile = "./generate_sim_records_tests/test_db.db"
-    r = parse_db(testfile)
-    modify_db(testfile, "gen.db", r)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', nargs=1, type=str, help='The base file for adding records to')
+    parser.add_argument('-o', '--output',  nargs=1, default=[], help='The name of the output file')
+    args = parser.parse_args()
+    
+    file = args.file[0]  
+    
+    if len(args.output) == 1:
+        out = args.output[0]
+    else:
+        out = "sim_" + file  
+    
+    r = parse_db(file )
+    generate_modifed_db(file, out, r)
