@@ -7,9 +7,9 @@ def parse_db(file):
     ''' '''
     #This regex matches the EPICS convention for PV names, e.g. a-z A-Z 0-9 _ - : [ ] < > ;
     #The ISIS convention uses a reduced set (a-z A-Z 0-9 _ :) but this is not relevant at this level
-    regRecordStart = 'record\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
+    regRecordStart = 'record\s*\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
     #Aliases look like alias("RECORDNAME","ALIASNAME")
-    regAlias_alone = 'alias\(\s*"([\w_\-\:\[\]<>;$\(\)]+)",\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
+    regAlias_alone = 'alias\s*\(\s*"([\w_\-\:\[\]<>;$\(\)]+)",\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
     
     f=open(file, 'r')
     
@@ -30,13 +30,13 @@ def parse_db(file):
                 records[record.name] = record
             else:
                 #Look for alias
-                regAlias_inside = 'alias\(\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
+                regAlias_inside = 'alias\s*\(\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
                 maAlias_inside = re.match(regAlias_inside, line)
                 #Look for SIML
-                regSiml = '\s+field\(SIML,\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
+                regSiml = '\s+field\s*\(SIML,\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
                 maSiml = re.match(regSiml, line)
                 #Look for SDIS
-                regSdis = '\s+field\(SDIS,\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
+                regSdis = '\s+field\s*\(SDIS,\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
                 maSdis = re.match(regSdis, line)
                 
                 if not (maAlias_inside is None):

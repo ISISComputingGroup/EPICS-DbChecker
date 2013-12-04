@@ -1,44 +1,59 @@
 import re
+import os
 import argparse
 from db_parser import parse_db
 from records import Record, Alias
 from grouper import Grouper, RecordGroup
 
-def generate_record_text(type, rb, sp, sp_rbv):
+#Only add SIM fields if type is one of the following:
+ALLOWED_SIM_TYPES = ['ai', 'ao', 'bi', 'bo', 'mbbi', 'mbbo', 'stringin', 'stringout']
+
+def generate_record_text(type, rb, sp, sp_rbv): 
+    def insert_sim(name):
+        if name.find('$') != -1:
+            left = name.rfind(')') + 1
+            macro = name[:left]
+            pvname = name[left:]
+            return macro + "SIM:" + pvname
+
     str = ''
-    if rb != '': #Seems unlikely!
-        str += 'record(' + type + ', "$(P)SIM:' + rb + '")' + '\n'
+    if rb != '': 
+        rb = insert_sim(rb)
+            
+        str += 'record(' + type + ', "' + rb + '")' + '\n'
         str += '{' + '\n'
         str += '    field(SCAN, "Passive")' + '\n'
         str += '    field(DTYP, "Soft Channel")' + '\n'
         str += '}' + '\n' + '\n'
-    
-    if sp != '':
-        str += 'alias("$(P)SIM:'+ rb + '","$(P)SIM:' + sp + '")' + '\n' + '\n'
         
-    if sp_rbv != '':
-        str += 'alias("$(P)SIM:'+ rb + '","$(P)SIM:' + sp_rbv + '")' + '\n' + '\n'
+        if sp != '':
+            sp = insert_sim(sp)
+            str += 'alias("'+ rb + '","' + sp + '")' + '\n' + '\n'
+            
+        if sp_rbv != '':
+            sp_rbv = insert_sim(sp_rbv)
+            str += 'alias("'+ rb + '","' + sp_rbv + '")' + '\n' + '\n'
+    elif sp != '':
+        sp = insert_sim(sp)
+        str += 'record(' + type + ', "' + sp + '")' + '\n'
+        str += '{' + '\n'
+        str += '    field(SCAN, "Passive")' + '\n'
+        str += '    field(DTYP, "Soft Channel")' + '\n'
+        str += '}' + '\n' + '\n'
+            
+        if sp_rbv != '':
+            sp_rbv = insert_sim(sp_rbv)
+            str += 'alias("'+ sp + '","' + sp_rbv + '")' + '\n' + '\n'
+    elif sp_rbv != '':
+        #Cannot think of any reason why a SP:RBV would exist on its own...
+        sp_rbv = insert_sim(sp_rbv)
+        str += 'record(' + type + ', "' + sp_rbv + '")' + '\n'
+        str += '{' + '\n'
+        str += '    field(SCAN, "Passive")' + '\n'
+        str += '    field(DTYP, "Soft Channel")' + '\n'
+        str += '}' + '\n' + '\n'
+        
     return str
-    
-def generate_sim_records_file(db_read, db_write):
-    records = parse_db(db_read)
-    grouper = Grouper()
-    groups = grouper.group_records(records)
-    
-    f=open(db_write, 'w')
-    
-    for g in groups.keys():
-        #Check sim record does not already exist - maybe someone started writing the records but got bored!
-        if '$(P)SIM:' + groups[g].main in records:
-            print ("Simulation record for %s already exists" % (groups[g].main))
-            continue
-        
-        #No point simulating SIM or DISABLE
-        if groups[g].RB != "SIM" and groups[g].RB != "DISABLE":
-            typ = records[groups[g].main].type
-            f.write(generate_record_text(typ, groups[g].RB, groups[g].SP, groups[g].SP_RBV))
-        
-    f.close()
     
 def generate_sim_records(db_read):
     records = parse_db(db_read)
@@ -59,7 +74,9 @@ def generate_sim_records(db_read):
         #No point simulating SIM or DISABLE
         if groups[g].RB != "$(P)SIM" and groups[g].RB != "$(P)DISABLE":
             typ = records[groups[g].main].type
-            output += generate_record_text(typ, groups[g].RB, groups[g].SP, groups[g].SP_RBV)
+            #Don't add simulation record unless the type is suitable
+            if typ in ALLOWED_SIM_TYPES:            
+                output += generate_record_text(typ, groups[g].RB, groups[g].SP, groups[g].SP_RBV)
         
     return output
 
@@ -90,7 +107,7 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
         fout.write('    field(OMSL, "supervisory")\n')
         fout.write('    field(ZNAM, "COMMS ENABLED")\n')
         fout.write('    field(ONAM, "COMMS DISABLED")\n')
-        fout.write('}\n')
+        fout.write('}\n\n')
     
     for line in fin:
         maPV = re.match(regRecordStart, line)
@@ -103,17 +120,20 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
             if not (maEnd is None):
                 #Found end, insert sim and dis if necessary
                 inrecord = False
-                if not curr_record is None:
-                    if insert_sims and curr_record.siml is None:
-                        name = curr_record.name
-                        if name.find('$') != -1:
-                            left = name.rfind(')') + 1
-                            name = name[left:]
-                        fout.write('    field(SIML, "$(P)SIM")\n')
-                        fout.write('    field(SIOL, "$(P)SIM:' + name+ '")\n')
-                if not curr_record is None:
-                    if insert_disable and curr_record.sdis is None:
-                        fout.write('    field(SDIS, "$(P)DISABLE")\n')
+                
+                #Only add SIM and SDIS to allowed records
+                if curr_record.type in ALLOWED_SIM_TYPES:
+                    if not curr_record is None:
+                        if insert_sims and curr_record.siml is None:
+                            name = curr_record.name
+                            if name.find('$') != -1:
+                                left = name.rfind(')') + 1
+                                name = name[left:]
+                            fout.write('    field(SIML, "$(P)SIM")\n')
+                            fout.write('    field(SIOL, "$(P)SIM:' + name+ '")\n')
+                    if not curr_record is None:
+                        if insert_disable and curr_record.sdis is None:
+                            fout.write('    field(SDIS, "$(P)DISABLE")\n')
         fout.write(line)
             
     fin.close()
@@ -123,7 +143,7 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
         
         #If no new records, don't write anything
         if new_records.strip() != "":
-            fout.write("### SIMULATION RECORDS ###\n\n")
+            fout.write("\n### SIMULATION RECORDS ###\n\n")
             fout.write(new_records)
     fout.close()
     
@@ -139,7 +159,8 @@ if __name__ == '__main__':
     if len(args.output) == 1:
         out = args.output[0]
     else:
-        out = "sim_" + file  
+        f = os.path.split(file)
+        out = "sim_" + f[-1] 
     
     r = parse_db(file )
     generate_modifed_db(file, out, r)
