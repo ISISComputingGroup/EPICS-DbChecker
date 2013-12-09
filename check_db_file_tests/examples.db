@@ -1,71 +1,184 @@
 #A read-only parameter
 #ALLOWED
 record(ai, "$(P)READONLY") 
+{
+}
 
 #Underscore used instead of colon
-#NOT ALLOWED
+#NOT ALLOWED - 1 error
 record(ai, "$(P)TEMP") 
+{
+}
 record(ai, "$(P)TEMP:SP") 
+{
+}
 record(ai, "$(P)TEMP:SP_RBV") 
+{
+}
 
 #Underscore used instead of colon
-#NOT ALLOWED
+#NOT ALLOWED - 2 errors
 record(ai, "$(P)TEMP1") 
+{
+}
 record(ai, "$(P)TEMP1_SP") 
+{
+}
 record(ai, "$(P)TEMP1_SP_RBV") 
+{
+}
 
 #Underscore used instead of final colon
-#NOT ALLOWED
+#NOT ALLOWED - 2 errors
 record(ai, "$(P)TEST:TEST") 
+{
+}
 record(ai, "$(P)TEST:TEST_SP") 
+{
+}
 record(ai, "$(P)TEST:TEST_SP_RBV")
+{
+}
 
 #Underscore used for clarity
 #ALLOWED
 record(ai, "$(P)TEST_TEST") 
+{
+}
 record(ai, "$(P)TEST_TEST:SP") 
+{
+}
 record(ai, "$(P)TEST_TEST:SP:RBV")
+{
+}
 
 #Underscore used for clarity and instead of final colon
-#NOT ALLOWED
+#NOT ALLOWED - 2 errors
 record(ai, "$(P)BLAH_BLAH") 
+{
+}
 record(ai, "$(P)BLAH_BLAH_SP") 
+{
+}
 record(ai, "$(P)BLAH_BLAH_SP_RBV")
+{
+}
 
 #Similar stems
 #ALLOWED
 record(ai, "$(P)X")
+{
+}
 record(ai, "$(P)X:SP")
+{
+}
 record(ai, "$(P)X:SP:RBV")
+{
+}
 record(ai, "$(P)X:POS")
+{
+}
 record(ai, "$(P)X:POS:SP")
+{
+}
 record(ai, "$(P)X:POS:SP:RBV")
+{
+}
 
 #Misspelt 
-#NOT ALLOWED
+#NOT ALLOWED - 2 errors
 record(ai, "$(P)Y")
+{
+}
 record(ai, "$(P)Y:SETP")
+{
+}
 record(ai, "$(P)Y:SETP:RBV")
+{
+}
 
 #Wrong convention - RBV gets current value, SP get current setpoint
-#NOT ALLOWED
+#NOT ALLOWED - 1 error
 record(ai, "$(P)Z")
+{
+}
 record(ai, "$(P)Z:SP")
+{
+}
 record(ai, "$(P)Z:RBV")
+{
+}
 
 #SP only - e.g. a push button who's status cannot be read.
 #This is allowed as long as it has an alias
 #ALLOWED
 record(ai, "$(P)PUSHBUTTON:SP")
+{
+}
 alias("$(P)PUSHBUTTON:SP", "$(P)PUSHBUTTON") 
 
 #SP only - e.g. a push button who's status cannot be read.
 #This is not allowed here because there is no alias
-#NOT ALLOWED
+#NOT ALLOWED - 1 error
 record(ai, "$(P)PUSHBUTTON_1:SP")
+{
+}
 
 #Aliased SP:RBV. Used for something that changes immediately like Voltage on/off
 #ALLOWED
 record(bi, "$(P)VOLTAGE_ON") 
+{
+}
 record(bo, "$(P)VOLTAGE_ON:SP") 
+{
+}
 alias("$(P)VOLTAGE_ON", "$(P)VOLTAGE_ON:SP:RBV")
+
+#SIM records often have one record and two aliases
+#ALLOWED
+record(bo, "$(P)SIM:OUTPUT1:STATUS")
+{
+}
+alias("$(P)SIM:OUTPUT1:STATUS","$(P)SIM:OUTPUT1:STATUS:SP")
+alias("$(P)SIM:OUTPUT1:STATUS","$(P)SIM:OUTPUT1:STATUS:SP:RBV")
+
+#SIM records often have one record and two aliases - missing a SP:RBV
+#NOT ALLOWED - 1 error
+record(bo, "$(P)SIM:OUTPUT2:STATUS")
+{
+}
+alias("$(P)SIM:OUTPUT2:STATUS","$(P)SIM:OUTPUT2:STATUS:SP")
+
+#What happens here?
+#The SP:RBV1 should end up being treated as an unrelated PV
+#ALLOWED
+record(bo, "$(P)OUT:STATUS")
+{
+}
+record(bo, "$(P)OUT:STATUS:SP")
+{
+}
+record(bo, "$(P)OUT:STATUS:SP:RBV")
+{
+}
+record(bo, "$(P)OUT:STATUS:SP:RBV1")
+{
+}
+
+#Invalid character in PV name
+#NOT ALLOWED - 1 error
+record(bo, "$(P)INVALIDCHAR-HERE")
+{
+}
+
+#Lower case PV name
+#NOT ALLOWED - 1 error
+record(bo, "$(P)lowercase")
+{
+}
+
+#Macro followed by colon - this is inconsistent with the other records, so is wrong
+#NOT ALLOWED - 1 error
+record(bo, "$(P):COLONADDED")
+{
+}

@@ -30,6 +30,20 @@ class DbChecker:
         records = parse_db(self.file)
         grouper = Grouper()
         
+        #Check for consistancy in whether PV macros are followed by colons
+        colon = None
+        for r in records.keys():
+            if colon is None:
+                n = self.remove_macro(r, False)
+                colon = n.startswith(':')
+            else:
+                n = self.remove_macro(r, False)
+                if n.startswith(':') != colon:
+                    if colon:
+                        self.errors.append("FORMAT ERROR: " + r + " should have a colon after the macro")
+                    else:
+                        self.errors.append("FORMAT ERROR: " + r + " should not have a colon after the macro")
+        
         groups = grouper.group_records(records)
         
         if self.debug:
@@ -50,10 +64,13 @@ class DbChecker:
         print "** WARNING COUNT =", len(self.warnings), "**"
         print "** ERROR COUNT =", len(self.errors), "**"     
         
-    def remove_macro(self, pvname):
+    def remove_macro(self, pvname, remove_colon=True):
         if pvname.find('$') != -1:
             left = pvname.rfind(')') + 1
             pvname = pvname[left:]
+            #Remove leading : if there is one
+            if remove_colon and pvname.startswith(':'):
+                pvname = pvname[1:]
         return pvname
 
     def check_case(self, group):
@@ -109,22 +126,4 @@ class DbChecker:
                 if group.SP != "" and not group.SP.endswith(':SP'):
                     self.errors.append("FORMAT ERROR: " + group.RB + " does not have a correctly formatted :SP")
                 if group.SP_RBV != "" and not group.SP_RBV.endswith(':SP:RBV'):
-                    self.errors.append("FORMAT ERROR: " + group.RB + " does not have a correctly formatted :SP:RBV")
-        
-    def check_for_colons(self, names):
-        #If there are no colons present then almost certainly the Db file is incorrect
-        #In this case, do not bother checking any further
-        for name in names: 
-            if ':' in name:
-                return True
-        return False
-
-
-
-        
-
-
-    
-    
-
-        
+                    self.errors.append("FORMAT ERROR: " + group.RB + " does not have a correctly formatted :SP:RBV")    
