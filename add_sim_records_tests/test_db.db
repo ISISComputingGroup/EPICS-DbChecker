@@ -6,6 +6,12 @@ record(stringin, "$(P)IDN")
     field(INP,  "@devAFG3XXX.proto getIDN $(PORT)")
 }
 
+record(stringin, "$(P)IGNORE")
+{
+    field(DESC, "Don't add sim record as this is a soft record")
+    field(DTYP, "Soft Channel")
+}
+
 ### CHANNEL 1 ###
 
 record(bi, "$(P)OUTPUT1:STATUS")

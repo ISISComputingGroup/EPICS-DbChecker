@@ -6,6 +6,7 @@ class Record:
         self.alias = alias
         self.siml = None
         self.sdis = None
+        self.dtyp = None
         
 class Alias:
     '''Class for storing alias details read from a Db file'''

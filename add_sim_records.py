@@ -96,7 +96,6 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
 
     for g in groups.keys():
         sim_record_name = get_sim_name(groups[g].main)
-        print sim_record_name
         
         #Check sim record does not already exist - maybe someone started writing the records but got bored!
         if sim_record_name in records:
@@ -105,12 +104,17 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
         #Skip record if it is a simulation record 
         if groups[g].main.startswith(sim_prefix):
             continue
+            
+        #Skip adding sim record if the original is a soft record
+        if records[groups[g].main].dtyp is None or records[groups[g].main].dtyp.lower() == "soft channel":
+            break
 
         #No point simulating SIM or DISABLE
         if groups[g].RB != sim_record_name and groups[g].RB != dis_record_name:
             typ = records[groups[g].main].type
             #Don't add simulation record unless the type is suitable
             if typ in ALLOWED_SIM_TYPES:            
+                print "ADDED SIM RECORD =", sim_record_name
                 output += generate_record_text(typ, groups[g].RB, groups[g].SP, groups[g].SP_RBV)
                 
     return output
@@ -128,7 +132,7 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
     prefix = most
     if colon:
         prefix += ':'
-    print prefix
+    print "COMMON PREFIX =", prefix
     
     sim_record_name = prefix + "SIM"
     dis_record_name = prefix + "DISABLE"
@@ -164,6 +168,10 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
             if not (maEnd is None):
                 #Found end, insert sim and dis if necessary
                 inrecord = False
+                
+                #Skip record if it is a soft record
+                if curr_record.dtyp is None or curr_record.dtyp.lower() == "soft channel":
+                    break
                 
                 #Only add SIM and SDIS to allowed records
                 if curr_record.type in ALLOWED_SIM_TYPES:
