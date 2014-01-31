@@ -71,7 +71,7 @@ class Grouper:
                        #~ recordGroups[s].append(name)
                 #~ elif s == name:
                         #~ recordGroups[s].append(name)
-                    
+
         if debug:
             print "GROUPS:"
             for s in recordGroups.keys():

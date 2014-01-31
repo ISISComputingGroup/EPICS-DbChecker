@@ -6,7 +6,7 @@ from records import Record, Alias
 from grouper import Grouper, RecordGroup
 
 #Only add SIM fields if type is one of the following:
-ALLOWED_SIM_TYPES = ['ai', 'ao', 'bi', 'bo', 'mbbi', 'mbbo', 'stringin', 'stringout', 'longin', 'longout']
+ALLOWED_SIM_TYPES = ['ai', 'ao', 'bi', 'bo', 'mbbi', 'mbbo', 'stringin', 'stringout', 'longin', 'longout', 'waveform']
 
 def find_macro(name):
     if name.find('$') != -1:
@@ -30,16 +30,25 @@ def get_sim_name(name):
         return macro + "SIM:" + pvname
     else:
         return "SIM:" + pvname
+        
+def add_waveform_specfic(nelm, ftvl):
+    str = ''
+    if not(nelm is None) or nelm == "":
+        str += '    field(NELM, "' + nelm + '")' + '\n'
+    if not(ftvl is None) or ftvl == "":
+        str += '    field(FTVL, "' + ftvl + '")' + '\n'
+    return str    
 
-def generate_record_text(type, rb, sp, sp_rbv): 
+def generate_record_text(record, rb, sp, sp_rbv): 
     str = ''
     if rb != '': 
         rb = get_sim_name(rb)
             
-        str += 'record(' + type + ', "' + rb + '")' + '\n'
+        str += 'record(' + record.type + ', "' + rb + '")' + '\n'
         str += '{' + '\n'
         str += '    field(SCAN, "Passive")' + '\n'
         str += '    field(DTYP, "Soft Channel")' + '\n'
+        str += add_waveform_specfic(record.nelm, record.ftvl)
         str += '}' + '\n' + '\n'
         
         if sp != '':
@@ -51,10 +60,11 @@ def generate_record_text(type, rb, sp, sp_rbv):
             str += 'alias("'+ rb + '","' + sp_rbv + '")' + '\n' + '\n'
     elif sp != '':
         sp = get_sim_name(sp)
-        str += 'record(' + type + ', "' + sp + '")' + '\n'
+        str += 'record(' + record.type + ', "' + sp + '")' + '\n'
         str += '{' + '\n'
         str += '    field(SCAN, "Passive")' + '\n'
         str += '    field(DTYP, "Soft Channel")' + '\n'
+        str += add_waveform_specfic(record.nelm, record.ftvl)
         str += '}' + '\n' + '\n'
             
         if sp_rbv != '':
@@ -63,10 +73,11 @@ def generate_record_text(type, rb, sp, sp_rbv):
     elif sp_rbv != '':
         #Cannot think of any reason why a SP:RBV would exist on its own...
         sp_rbv = get_sim_name(sp_rbv)
-        str += 'record(' + type + ', "' + sp_rbv + '")' + '\n'
+        str += 'record(' + record.type + ', "' + sp_rbv + '")' + '\n'
         str += '{' + '\n'
         str += '    field(SCAN, "Passive")' + '\n'
         str += '    field(DTYP, "Soft Channel")' + '\n'
+        str += add_waveform_specfic(record.nelm, record.ftvl)
         str += '}' + '\n' + '\n'
         
     return str
@@ -107,7 +118,7 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
             
         #Skip adding sim record if the original is a soft record
         if records[groups[g].main].dtyp is None or records[groups[g].main].dtyp.lower() == "soft channel":
-            break
+            continue
 
         #No point simulating SIM or DISABLE
         if groups[g].RB != sim_record_name and groups[g].RB != dis_record_name:
@@ -115,7 +126,7 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
             #Don't add simulation record unless the type is suitable
             if typ in ALLOWED_SIM_TYPES:            
                 print "ADDED SIM RECORD =", sim_record_name
-                output += generate_record_text(typ, groups[g].RB, groups[g].SP, groups[g].SP_RBV)
+                output += generate_record_text(records[groups[g].main], groups[g].RB, groups[g].SP, groups[g].SP_RBV)
                 
     return output
 
@@ -171,7 +182,7 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
                 
                 #Skip record if it is a soft record
                 if curr_record.dtyp is None or curr_record.dtyp.lower() == "soft channel":
-                    break
+                    continue
                 
                 #Only add SIM and SDIS to allowed records
                 if curr_record.type in ALLOWED_SIM_TYPES:

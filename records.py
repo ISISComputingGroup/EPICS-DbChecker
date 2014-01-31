@@ -7,6 +7,8 @@ class Record:
         self.siml = None
         self.sdis = None
         self.dtyp = None
+        self.nelm = None #waveform only
+        self.ftvl = None #waveform only
         
 class Alias:
     '''Class for storing alias details read from a Db file'''

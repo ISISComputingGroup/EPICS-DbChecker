@@ -41,6 +41,12 @@ def parse_db(file):
                 #Look for DTYP
                 regDtyp = '\s+field\s*\(DTYP,\s*"([\w_\-\:\[\]<>;$\(\)\s]+)"\)'
                 maDtyp = re.match(regDtyp, line)
+                #Look for NELM
+                regNelm = '\s+field\s*\(NELM,\s*"([\w_\-\:\[\]<>;$\(\)\s]+)"\)'
+                maNelm = re.match(regNelm, line)
+                #Look for FTVL
+                regFtvl = '\s+field\s*\(FTVL,\s*"([\w_\-\:\[\]<>;$\(\)\s]+)"\)'
+                maFtvl = re.match(regFtvl, line)
                 
                 if not (maAlias_inside is None):
                     #There is an alias
@@ -50,8 +56,11 @@ def parse_db(file):
                 if not (maSdis is None):
                     record.sdis = maSdis.groups()[0]
                 if not (maDtyp is None):
-                    print maDtyp.groups()[0]
                     record.dtyp = maDtyp.groups()[0]
+                if not (maNelm is None):
+                    record.nelm = maNelm.groups()[0]
+                if not (maFtvl is None):
+                    record.ftvl = maFtvl.groups()[0]
         else:
             if not (maPV is None):
                 #Found start of record
