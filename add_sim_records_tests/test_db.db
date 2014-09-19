@@ -8,7 +8,7 @@ record(stringin, "$(P)IDN")
 
 record(stringin, "$(P)IGNORE")
 {
-    field(DESC, "Don't add sim record as this is a soft record")
+    field(DESC, "Don't add sim record as this is soft")
     field(DTYP, "Soft Channel")
 }
 
