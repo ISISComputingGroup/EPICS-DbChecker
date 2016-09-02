@@ -155,6 +155,7 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
         fout.write('    field(DTYP, "Soft Channel")\n')
         fout.write('    field(ZNAM, "NO")\n')
         fout.write('    field(ONAM, "YES")\n')
+        fout.write('    field(VAL, "$(RECSIM=0)")\n')
         fout.write('}\n\n')
     
     if insert_disable and not dis_record_name in records:
@@ -162,7 +163,7 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
         fout.write('{\n')
         fout.write('    field(DESC, "Disable comms")\n')
         fout.write('    field(PINI, "YES")\n')
-        fout.write('    field(VAL, "0")\n')
+        fout.write('    field(VAL, "$(DISABLE=0)")\n')
         fout.write('    field(OMSL, "supervisory")\n')
         fout.write('    field(ZNAM, "COMMS ENABLED")\n')
         fout.write('    field(ONAM, "COMMS DISABLED")\n')
