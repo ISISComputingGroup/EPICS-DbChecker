@@ -137,7 +137,7 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
     fout=open(file_out, 'w')
     
     inrecord = False
-    curr_record = None
+
     
     most, colon = find_common_macro(records)
     prefix = most
@@ -168,31 +168,26 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sim
         fout.write('    field(ZNAM, "COMMS ENABLED")\n')
         fout.write('    field(ONAM, "COMMS DISABLED")\n')
         fout.write('}\n\n')
-    
+
+    curr_record = None
     for line in fin:
         maPV = re.match(regRecordStart, line)
-        if not (maPV is None):
-            #Found start of record
-            inrecord = True
+        if maPV is not None:
+            # Found start of record
             curr_record = records[maPV.groups()[1]]
-        else:
+
+        elif curr_record is not None:
             maEnd = re.match("}$", line.strip())
-            if not (maEnd is None):
-                #Found end, insert sim and dis if necessary
-                inrecord = False
-                
-                #Skip record if it is a soft record
-                if curr_record.dtyp is None or curr_record.dtyp.lower() == "soft channel":
-                    continue
-                
-                #Only add SIM and SDIS to allowed records
-                if curr_record.type in ALLOWED_SIM_TYPES:
-                    if not curr_record is None:
+
+            if maEnd is not None:
+                # Found end, insert sim and dis if necessary
+
+                # Only add SIM and SDIS to allowed records which has a record type which is not soft channel
+                if curr_record.type in ALLOWED_SIM_TYPES and curr_record.dtyp is not None and curr_record.dtyp.lower() != "soft channel":
                         if insert_sims and curr_record.siml is None:
                             name = get_sim_name(curr_record.name)                            
                             fout.write('    field(SIML, "' + sim_record_name +'")\n')
                             fout.write('    field(SIOL, "' + name+ '")\n')
-                    if not curr_record is None:
                         if insert_disable and curr_record.sdis is None:
                             fout.write('    field(SDIS, "' + dis_record_name +'")\n')
         fout.write(line)
