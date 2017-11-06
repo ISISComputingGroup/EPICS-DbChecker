@@ -1,9 +1,10 @@
 import re
 import os
 import argparse
-from db_parser import parse_db
-from records import Record, Alias
-from grouper import Grouper, RecordGroup
+from db_parser import parse_db, record_start_regex
+from records import Record
+from grouper import Grouper
+from collections import Counter
 
 # Only add SIM fields if type is one of the following:
 ALLOWED_SIM_TYPES = ['ai', 'ao', 'bi', 'bo', 'mbbi', 'mbbo', 'stringin', 'stringout', 'longin', 'longout', 'waveform']
@@ -15,97 +16,80 @@ class NoMacroException(Exception):
 
 def find_macro(name):
     """
-    Splits a record name into the macro and the rest. Assumes that the PV only has one macro.
+    Splits a record name into the macro and the rest.
     :param name: The name of a record.
     :return: Tuple of (macro, pvname)
     """
     if name.find('$') != -1:
         left = name.rfind(')') + 1
-        return name[:left], name[left:]
+        macro, pv = name[:left], name[left:]
+
+        # Check for leading :
+        # eg. PV name was something like $(P):TEMP rather than $(P)TEMP
+        # This colon will count as part of the macro
+        if pv.startswith(':'):
+            return macro + ":", pv[1:]
+        else:
+            return macro, pv
     raise NoMacroException("PV {} contains no macros".format(name))
 
 
 def get_sim_name(name):
     macro, pvname = find_macro(name)
-
-    # Check for leading :
-    # eg. PV name was something like $(P):TEMP rather than $(P)TEMP
-    if pvname.startswith(':'):
-        pvname = pvname[1:]
-        macro += ':'
     return macro + "SIM:" + pvname
 
 
-def add_waveform_specfic(nelm, ftvl):
-    str = ''
-    if not(nelm is None) or nelm == "":
-        str += '    field(NELM, "' + nelm + '")' + '\n'
-    if not(ftvl is None) or ftvl == "":
-        str += '    field(FTVL, "' + ftvl + '")' + '\n'
-    return str    
+def create_sim_record(old_record, new_name):
+    rb_record = Record(new_name, old_record.type)
+    rb_record.fields["SCAN"] = "Passive"
+    rb_record.fields["DTYP"] = "Soft Channel"
+    rb_record.nelm = old_record.nelm
+    rb_record.ftvl = old_record.ftvl
+    return rb_record
 
 
-def generate_record_text(record, rb, sp, sp_rbv): 
-    str = ''
+def generate_record_text(old_record, rb, sp, sp_rbv):
+    out = ''
     if rb != '': 
         rb = get_sim_name(rb)
-            
-        str += 'record(' + record.type + ', "' + rb + '")' + '\n'
-        str += '{' + '\n'
-        str += '    field(SCAN, "Passive")' + '\n'
-        str += '    field(DTYP, "Soft Channel")' + '\n'
-        str += add_waveform_specfic(record.nelm, record.ftvl)
-        str += '}' + '\n' + '\n'
-        
+
+        out += str(create_sim_record(old_record, rb))
+
         if sp != '':
             sp = get_sim_name(sp)
-            str += 'alias("' + rb + '","' + sp + '")' + '\n' + '\n'
+            out += 'alias("{}","{}")\n\n'.format(rb, sp)
             
         if sp_rbv != '':
             sp_rbv = get_sim_name(sp_rbv)
-            str += 'alias("' + rb + '","' + sp_rbv + '")' + '\n' + '\n'
+            out += 'alias("{}","{}")\n\n'.format(rb, sp_rbv)
     elif sp != '':
         sp = get_sim_name(sp)
-        str += 'record(' + record.type + ', "' + sp + '")' + '\n'
-        str += '{' + '\n'
-        str += '    field(SCAN, "Passive")' + '\n'
-        str += '    field(DTYP, "Soft Channel")' + '\n'
-        str += add_waveform_specfic(record.nelm, record.ftvl)
-        str += '}' + '\n' + '\n'
+
+        out += str(create_sim_record(old_record, sp))
             
         if sp_rbv != '':
             sp_rbv = get_sim_name(sp_rbv)
-            str += 'alias("' + sp + '","' + sp_rbv + '")' + '\n' + '\n'
+            out += 'alias("{}","{}")\n\n'.format(sp, sp_rbv)
     elif sp_rbv != '':
         # Cannot think of any reason why a SP:RBV would exist on its own...
         sp_rbv = get_sim_name(sp_rbv)
-        str += 'record(' + record.type + ', "' + sp_rbv + '")' + '\n'
-        str += '{' + '\n'
-        str += '    field(SCAN, "Passive")' + '\n'
-        str += '    field(DTYP, "Soft Channel")' + '\n'
-        str += add_waveform_specfic(record.nelm, record.ftvl)
-        str += '}' + '\n' + '\n'
+
+        out += str(create_sim_record(old_record, sp_rbv))
         
-    return str
+    return out
 
 
-def find_common_macro(records):
-    # Find the most common macro name and whether it is followed by a colon
-    macros = {}
-    for r in records:
-        m, pv = find_macro(records[r].name)
-        if m in macros.keys():
-            macros[m][0] += 1
-        else:
-            macros[m] = [0, pv.startswith(':')]
-    best = None
-    for m in macros.keys():
-        if best is None or macros[m][0] > macros[best][0]:
-            best = m
-    return best, macros[best][1]
+def find_common_prefix(records):
+    """
+    Find the most common prefix in the records.
+    This assumes that the prefix is a macro, which may or may not end with a colon.
+    """
+    prefixes = [find_macro(r)[0] for r in records.keys()]
+    prefix_counter = Counter(prefixes)
+    return prefix_counter.most_common(1)[0][0]
 
 
-def generate_sim_records(records, sim_record_name, dis_record_name):      
+def generate_sim_records(records, sim_record_name, dis_record_name):
     sim_prefix = sim_record_name + ':'
     
     grouper = Grouper()
@@ -141,44 +125,37 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
 
 def generate_modifed_db(file_in, file_out="generated.db", records={}, sim_record_name=None,
                         insert_sims=True, insert_disable=True):
-    record_start_regex = 'record\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
-    
     fin = open(file_in, 'r')
     fout = open(file_out, 'w')
 
-    most, colon = find_common_macro(records)
-    prefix = most
-    if colon:
-        prefix += ':'
+    prefix = find_common_prefix(records)
     print("COMMON PREFIX: {}".format(prefix))
 
     if sim_record_name is None:
         sim_record_name = prefix + "SIM"
         print("Creating simulation PV: {}".format(sim_record_name))
         if insert_sims and sim_record_name not in records:
-            fout.write('record(bo, "' + sim_record_name + '")\n')
-            fout.write('{\n')
-            fout.write('    field(SCAN, "Passive")\n')
-            fout.write('    field(DTYP, "Soft Channel")\n')
-            fout.write('    field(ZNAM, "NO")\n')
-            fout.write('    field(ONAM, "YES")\n')
-            fout.write('    field(VAL, "$(RECSIM=0)")\n')
-            fout.write('}\n\n')
+            sim_record = Record(sim_record_name, "bo")
+            sim_record.fields["SCAN"] = "Passive"
+            sim_record.fields["DTYP"] = "Soft Channel"
+            sim_record.fields["ZNAM"] = "NO"
+            sim_record.fields["ONAM"] = "YES"
+            sim_record.fields["VAL"] = "$(RECSIM=0)"
+            fout.write(str(sim_record))
     else:
         print("Using simulation PV: {}".format(sim_record_name))
 
     dis_record_name = prefix + "DISABLE"
     
     if insert_disable and dis_record_name not in records:
-        fout.write('record(bo, "' + dis_record_name + '") \n')
-        fout.write('{\n')
-        fout.write('    field(DESC, "Disable comms")\n')
-        fout.write('    field(PINI, "YES")\n')
-        fout.write('    field(VAL, "$(DISABLE=0)")\n')
-        fout.write('    field(OMSL, "supervisory")\n')
-        fout.write('    field(ZNAM, "COMMS ENABLED")\n')
-        fout.write('    field(ONAM, "COMMS DISABLED")\n')
-        fout.write('}\n\n')
+        dis_record = Record(dis_record_name, "bo")
+        dis_record.fields["DESC"] = "Disable comms"
+        dis_record.fields["PINI"] = "YES"
+        dis_record.fields["VAL"] = "$(DISABLE=0)"
+        dis_record.fields["OMSL"] = "supervisory"
+        dis_record.fields["ZNAM"] = "COMMS ENABLED"
+        dis_record.fields["ONAM"] = "COMMS DISABLED"
+        fout.write(str(dis_record))
 
     curr_record = None
     for line in fin:
@@ -197,10 +174,10 @@ def generate_modifed_db(file_in, file_out="generated.db", records={}, sim_record
                 if curr_record.type in ALLOWED_SIM_TYPES and curr_record.dtyp is not None and curr_record.dtyp.lower() != "soft channel":
                         if insert_sims and curr_record.siml is None:
                             name = get_sim_name(curr_record.name)                            
-                            fout.write('    field(SIML, "' + sim_record_name + '")\n')
-                            fout.write('    field(SIOL, "' + name + '")\n')
+                            fout.write(Record.print_field("SIML", sim_record_name))
+                            fout.write(Record.print_field("SIOL", name))
                         if insert_disable and curr_record.sdis is None:
-                            fout.write('    field(SDIS, "' + dis_record_name + '")\n')
+                            fout.write(Record.print_field("DESC", dis_record_name))
         fout.write(line)
             
     fin.close()
