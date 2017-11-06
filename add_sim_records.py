@@ -130,33 +130,35 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
                 
     return output
 
-def generate_modifed_db(file_in, file_out="generated.db", records={}, insert_sims=True, insert_disable=True):
+def generate_modifed_db(file_in, file_out="generated.db", records={}, sim_record_name=None,
+                        insert_sims=True, insert_disable=True):
     regRecordStart = 'record\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
     
     fin=open(file_in, 'r')
     fout=open(file_out, 'w')
-    
-    inrecord = False
 
-    
     most, colon = find_common_macro(records)
     prefix = most
     if colon:
         prefix += ':'
     print "COMMON PREFIX =", prefix
-    
-    sim_record_name = prefix + "SIM"
+
+    if sim_record_name is None:
+        sim_record_name = prefix + "SIM"
+        print("Creating simulation PV: {}".format(sim_record_name))
+        if insert_sims and not sim_record_name in records:
+            fout.write('record(bo, "' + sim_record_name + '")\n')
+            fout.write('{\n')
+            fout.write('    field(SCAN, "Passive")\n')
+            fout.write('    field(DTYP, "Soft Channel")\n')
+            fout.write('    field(ZNAM, "NO")\n')
+            fout.write('    field(ONAM, "YES")\n')
+            fout.write('    field(VAL, "$(RECSIM=0)")\n')
+            fout.write('}\n\n')
+    else:
+        print("Using simulation PV: {}".format(sim_record_name))
+
     dis_record_name = prefix + "DISABLE"
-    
-    if insert_sims and not sim_record_name in records:
-        fout.write('record(bo, "' + sim_record_name + '")\n')
-        fout.write('{\n')
-        fout.write('    field(SCAN, "Passive")\n')
-        fout.write('    field(DTYP, "Soft Channel")\n')
-        fout.write('    field(ZNAM, "NO")\n')
-        fout.write('    field(ONAM, "YES")\n')
-        fout.write('    field(VAL, "$(RECSIM=0)")\n')
-        fout.write('}\n\n')
     
     if insert_disable and not dis_record_name in records:
         fout.write('record(bo, "' + dis_record_name +'") \n')
@@ -208,6 +210,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('file', nargs=1, type=str, help='The base file for adding records to')
     parser.add_argument('-o', '--output',  nargs=1, default=[], help='The name of the output file')
+    parser.add_argument('-nd', '--no_disable', action='store_false',
+                        help='Specify to not add a disable record to the new db')
+    parser.add_argument('-s', '--sim_pv', nargs='?', type=str,
+                        help='Specify the record to toggle simulation. If not specified one will be created.')
     args = parser.parse_args()
     
     file = args.file[0]  
@@ -218,5 +224,5 @@ if __name__ == '__main__':
         f = os.path.split(file)
         out = "sim_" + f[-1] 
     
-    r = parse_db(file )
-    generate_modifed_db(file, out, r)
+    db_records = parse_db(file)
+    generate_modifed_db(file, out, db_records, insert_disable=args.no_disable, sim_record_name=args.sim_pv)
