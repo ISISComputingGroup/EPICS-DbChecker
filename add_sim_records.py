@@ -218,5 +218,5 @@ if __name__ == '__main__':
         f = os.path.split(file)
         out = "sim_" + f[-1] 
     
-    r = parse_db(file )
-    generate_modifed_db(file, out, r)
+    records = parse_db(file)
+    generate_modifed_db(file, out, records)
