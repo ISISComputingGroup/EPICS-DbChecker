@@ -1,7 +1,4 @@
 import re
-import argparse
-import os
-import glob
 from db_parser import parse_db
 from records import Record, Alias
 from grouper import Grouper, RecordGroup
@@ -26,7 +23,7 @@ class DbChecker:
         self.debug = debug
         
     def check(self):
-        print "\n** CHECKING", self.file, "**"
+        print ("\n** CHECKING", self.file, "**")
         records = parse_db(self.file)
         grouper = Grouper()
         
@@ -48,7 +45,7 @@ class DbChecker:
         
         if self.debug:
             for s in groups.keys():
-                print s, groups[s].RB, groups[s].SP, groups[s].SP_RBV
+                print (s, groups[s].RB, groups[s].SP, groups[s].SP_RBV)
         
         for s in groups.keys():
             self.check_case(groups[s])
@@ -56,13 +53,13 @@ class DbChecker:
             self.check_candidates(groups[s], records)
                 
         for w in self.warnings:
-            print w
+            print (w)
                     
         for e in self.errors:
-            print e
+            print (e)
                                 
-        print "** WARNING COUNT =", len(self.warnings), "**"
-        print "** ERROR COUNT =", len(self.errors), "**"     
+        print ("** WARNING COUNT =", len(self.warnings), "**")
+        print ("** ERROR COUNT =", len(self.errors), "**")
         
     def remove_macro(self, pvname, remove_colon=True):
         if pvname.find('$') != -1:

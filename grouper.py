@@ -18,8 +18,8 @@ class Grouper:
         
     def group_records(self, records, debug=False):
         #Get the record keys as a list because by sorting it we can identify stems easily 
-        names = records.keys()
-        names.sort()
+        names = sorted(records.keys())
+        #names.sort()
         
         recordGroups = {}
         
@@ -73,9 +73,9 @@ class Grouper:
                         #~ recordGroups[s].append(name)
 
         if debug:
-            print "GROUPS:"
+            print ("GROUPS:")
             for s in recordGroups.keys():
-                print s, recordGroups[s].RB, recordGroups[s].SP, recordGroups[s].SP_RBV
+                print (s + recordGroups[s].RB + recordGroups[s].SP + recordGroups[s].SP_RBV)
         
         return recordGroups
         
