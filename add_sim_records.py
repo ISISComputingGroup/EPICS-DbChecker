@@ -4,6 +4,7 @@ import argparse
 from db_parser import parse_db
 from records import Record, Alias
 from grouper import Grouper, RecordGroup
+import textwrap
 
 #Only add SIM fields if type is one of the following:
 ALLOWED_SIM_TYPES = ['ai', 'ao', 'bi', 'bo', 'mbbi', 'mbbo', 'stringin', 'stringout', 'longin', 'longout', 'waveform']
@@ -34,22 +35,26 @@ def get_sim_name(name):
 def add_waveform_specfic(nelm, ftvl):
     str = ''
     if not(nelm is None) or nelm == "":
-        str += '    field(NELM, "' + nelm + '")' + '\n'
+        str += '    field(NELM, "' + nelm + '")\n'
     if not(ftvl is None) or ftvl == "":
-        str += '    field(FTVL, "' + ftvl + '")' + '\n'
+        str += '    field(FTVL, "' + ftvl + '")\n'
     return str    
+
+def generate_single_record(original_record, name):
+    return textwrap.dedent("""\
+        record({},"{}")
+        {{
+            field(SCAN, "Passive")
+            field(DTYP, "Soft Channel"){}
+        }}
+        
+        """.format(original_record.type, name, add_waveform_specfic(original_record.nelm, original_record.ftvl)))
 
 def generate_record_text(record, rb, sp, sp_rbv): 
     str = ''
     if rb != '': 
         rb = get_sim_name(rb)
-            
-        str += 'record(' + record.type + ', "' + rb + '")' + '\n'
-        str += '{' + '\n'
-        str += '    field(SCAN, "Passive")' + '\n'
-        str += '    field(DTYP, "Soft Channel")' + '\n'
-        str += add_waveform_specfic(record.nelm, record.ftvl)
-        str += '}' + '\n' + '\n'
+        str += generate_single_record(record, rb)
         
         if sp != '':
             sp = get_sim_name(sp)
@@ -60,12 +65,7 @@ def generate_record_text(record, rb, sp, sp_rbv):
             str += 'alias("'+ rb + '","' + sp_rbv + '")' + '\n' + '\n'
     elif sp != '':
         sp = get_sim_name(sp)
-        str += 'record(' + record.type + ', "' + sp + '")' + '\n'
-        str += '{' + '\n'
-        str += '    field(SCAN, "Passive")' + '\n'
-        str += '    field(DTYP, "Soft Channel")' + '\n'
-        str += add_waveform_specfic(record.nelm, record.ftvl)
-        str += '}' + '\n' + '\n'
+        str += generate_single_record(record, sp)
             
         if sp_rbv != '':
             sp_rbv = get_sim_name(sp_rbv)
@@ -73,12 +73,7 @@ def generate_record_text(record, rb, sp, sp_rbv):
     elif sp_rbv != '':
         #Cannot think of any reason why a SP:RBV would exist on its own...
         sp_rbv = get_sim_name(sp_rbv)
-        str += 'record(' + record.type + ', "' + sp_rbv + '")' + '\n'
-        str += '{' + '\n'
-        str += '    field(SCAN, "Passive")' + '\n'
-        str += '    field(DTYP, "Soft Channel")' + '\n'
-        str += add_waveform_specfic(record.nelm, record.ftvl)
-        str += '}' + '\n' + '\n'
+        str += generate_single_record(record, sp_rbv)
         
     return str
 
