@@ -1,11 +1,9 @@
-import re
 import argparse
 import os
 import glob
 from db_checker import DbChecker
-#from records import Record, Alias
-#from grouper import Grouper, RecordGroup
- 
+
+
 def check_files(files, verbose):
     for f in files:
         try:
@@ -13,7 +11,8 @@ def check_files(files, verbose):
             dbc = DbChecker(fp, verbose)
             dbc.check()
         except IOError:
-            print "FILE ERROR: File", f, "does not exist"
+            print("FILE ERROR: File {} does not exist".format(f))
+
 
 if __name__ == '__main__':   
     parser = argparse.ArgumentParser()
@@ -23,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='store_true', help='Run in verbose mode')
     args = parser.parse_args()
     
-    if len(args.directory) == 0 and  len(args.files) == 0:
+    if len(args.directory) == 0 and len(args.files) == 0:
         parser.print_help()
     else:     
         if len(args.files) > 0:
@@ -41,12 +40,3 @@ if __name__ == '__main__':
                 os.chdir(args.directory[0])
                 files = glob.glob("*.db")
                 check_files(files, args.verbose)
-
-
-        
-
-
-    
-    
-
-        
