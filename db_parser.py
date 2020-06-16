@@ -21,8 +21,7 @@ def parse_db(filename):
     # but this is not relevant at this level
     reg_record_start = r'record\s*\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
     # Aliases look like alias("RECORDNAME","ALIASNAME")
-    reg_alias_alone = r'alias\s*\(\s*"([\w_\-\:\[\]<>;$\(\)]+)",' \
-                      r'\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
+    reg_alias_alone = r'alias\s*\(\s*"([\w_\-\:\[\]<>;$\(\)]+)",\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
     
     with open(filename, 'r') as f:
     
