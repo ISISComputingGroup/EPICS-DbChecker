@@ -4,8 +4,8 @@ import glob
 from db_checker import DbChecker
 
 
-def check_files(files, verbose):
-    for f in files:
+def check_files(db_files, verbose):
+    for f in db_files:
         try:
             fp = os.path.abspath(f)
             dbc = DbChecker(fp, verbose)
@@ -16,10 +16,20 @@ def check_files(files, verbose):
 
 if __name__ == '__main__':   
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--directory', nargs=1, default=[], help='The directory to search for db files in')
-    parser.add_argument('-f', '--files',  nargs='*', default=[], help='The db file(s) to test')
-    parser.add_argument('-r', '--recursive', action='store_true', help='Check all db files below the specified directory')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Run in verbose mode')
+    parser.add_argument(
+        '-d', '--directory', nargs=1, default=[],
+        help='The directory to search for db files in'
+    )
+    parser.add_argument(
+        '-f', '--files',  nargs='*', default=[],
+        help='The db file(s) to test')
+    parser.add_argument(
+        '-r', '--recursive', action='store_true',
+        help='Check all db files below the specified directory'
+    )
+    parser.add_argument(
+        '-v', '--verbose', action='store_true', help='Run in verbose mode'
+    )
     args = parser.parse_args()
     
     if len(args.directory) == 0 and len(args.files) == 0:
@@ -36,7 +46,7 @@ if __name__ == '__main__':
                             tocheck.append(os.path.join(root, file))
                 check_files(tocheck, args.verbose)
             else:
-                #Find db files in directory
+                # Find db files in directory
                 os.chdir(args.directory[0])
                 files = glob.glob("*.db")
                 check_files(files, args.verbose)

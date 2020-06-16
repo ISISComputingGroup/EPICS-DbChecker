@@ -7,8 +7,8 @@ class Record:
         self.siml = None
         self.sdis = None
         self.dtyp = None
-        self.nelm = None #waveform only
-        self.ftvl = None #waveform only
+        self.nelm = None  # waveform only
+        self.ftvl = None  # waveform only
 
 
 class Alias:
