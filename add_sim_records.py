@@ -1,9 +1,10 @@
 import re
 import os
 import argparse
-from db_parser import parse_db
 from grouper import Grouper
 import textwrap
+from src.db_parser.parser import Parser
+from src.db_parser.lexer import Lexer
 
 # Only add SIM fields if type is one of the following:
 ALLOWED_SIM_TYPES = [
@@ -144,8 +145,7 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
     return output
 
 
-def generate_modifed_db(file_in_path, file_out_path="generated.db",
-                        records=None, insert_sims=True, insert_disable=True):
+def generate_modifed_db(file_in_path, records, file_out_path="generated.db", insert_sims=True, insert_disable=True):
     if records is None:
         records = {}
     record_start_regex = r'record\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
@@ -239,5 +239,5 @@ if __name__ == '__main__':
         f = os.path.split(file)
         out = "sim_" + f[-1] 
     
-    db_records = parse_db(file)
-    generate_modifed_db(file, out, db_records)
+    db_records = Parser(Lexer(file)).db()
+    generate_modifed_db(file, db_records, out)

@@ -1,5 +1,7 @@
 import re
 from records import Record
+from src.db_parser.parser import Parser
+from src.db_parser.lexer import Lexer
 
 
 class RecordGroup:
@@ -90,8 +92,7 @@ class Grouper:
 
 if __name__ == '__main__':  
     # Simple test
-    from db_parser import parse_db
     testfile = "./add_sim_records_tests/test_db.db"
-    r = parse_db(testfile)
+    r = Parser(Lexer(testfile)).db()
     g = Grouper()
     g.group_records(r, True)
