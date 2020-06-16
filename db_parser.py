@@ -84,7 +84,6 @@ def parse_db(filename):
             else:
                 if pv_name_match is not None:
                     # Found start of record
-                    # print "PV", pv_name_match.groups()[1]
                     record = Record(
                         pv_name_match.groups()[1], pv_name_match.groups()[0]
                     )
@@ -95,7 +94,6 @@ def parse_db(filename):
                         records[record.name] = record
 
                 elif not (alias_match is None):
-                    # print "Alias", alias_match.groups()[1]
                     alias = Alias(
                         alias_match.groups()[1], parent=alias_match.groups()[0]
                     )

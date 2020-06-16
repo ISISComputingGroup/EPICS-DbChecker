@@ -27,7 +27,7 @@ class DbChecker:
         self.debug = debug
         
     def check(self):
-        print("\n** CHECKING", self.file, "**")
+        print("\n** CHECKING {} **".format(self.file))
         records = parse_db(self.file)
         grouper = Grouper()
         
@@ -68,8 +68,8 @@ class DbChecker:
         for e in self.errors:
             print(e)
                                 
-        print("** WARNING COUNT =", len(self.warnings), "**")
-        print("** ERROR COUNT =", len(self.errors), "**")
+        print("** WARNING COUNT = {} **".format(len(self.warnings)))
+        print("** ERROR COUNT = {}".format(len(self.errors)))
         
     def remove_macro(self, pvname, remove_colon=True):
         if pvname.find('$') != -1:
