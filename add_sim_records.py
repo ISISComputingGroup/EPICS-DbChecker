@@ -1,7 +1,7 @@
 import re
 import os
 import argparse
-from grouper import Grouper
+from src.grouper import Grouper
 import textwrap
 from src.db_parser.parser import Parser
 from src.db_parser.lexer import Lexer

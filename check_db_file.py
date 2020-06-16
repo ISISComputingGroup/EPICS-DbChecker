@@ -1,7 +1,7 @@
 import argparse
 import os
 import glob
-from db_checker import DbChecker
+from src.db_checker import DbChecker
 
 
 def check_files(db_files, verbose):

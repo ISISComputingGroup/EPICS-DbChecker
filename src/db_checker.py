@@ -1,7 +1,8 @@
 import re
-from db_parser import parse_db
-from records import Alias
-from grouper import Grouper
+from src.records import Alias
+from src.grouper import Grouper
+from src.db_parser.parser import Parser
+from src.db_parser.lexer import Lexer
 
 # Rules implemented:
 # 1) Name should be uppercase
@@ -28,7 +29,7 @@ class DbChecker:
         
     def check(self):
         print("\n** CHECKING {} **".format(self.file))
-        records = parse_db(self.file)
+        records = Parser(Lexer(self.file)).db()
         grouper = Grouper()
         
         # Check for consistency in whether PV macros are followed by colons

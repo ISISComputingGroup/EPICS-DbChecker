@@ -1,5 +1,5 @@
 import re
-from records import Record
+from src.records import Record
 from src.db_parser.parser import Parser
 from src.db_parser.lexer import Lexer
 
