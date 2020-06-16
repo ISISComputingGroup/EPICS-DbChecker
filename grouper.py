@@ -30,8 +30,7 @@ class Grouper:
             # Stems are pure records, not aliases
             if isinstance(records[name], Record):
                 ma1 = re.match(
-                    r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)"
-                    r"[_:](RBV|RB|READBACK|READ)$", name
+                    r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
                 )
                 ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
                 if ma1 is None and ma2 is None:
@@ -67,8 +66,7 @@ class Grouper:
                     name
                 )
                 ma2 = re.search(
-                    "^" + re.escape(s) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:]"
-                                         r"(RBV|RB|READBACK|READ)$",
+                    "^" + re.escape(s) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$",
                     name
                 )
                 

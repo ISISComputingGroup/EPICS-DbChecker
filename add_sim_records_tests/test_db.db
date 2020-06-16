@@ -28,7 +28,7 @@ record(bo, "$(P)OUTPUT1:STATUS:SP")
     field(DTYP, "stream")
     field(OUT,  "@devAFG3XXX.proto setStatus(1) $(PORT)")
     field(ZNAM, "OFF")
-    field(ONAM, "ON")	
+    field(ONAM, "ON")
 }
 
 alias("$(P)OUTPUT1:STATUS", "$(P)OUTPUT1:STATUS:SP:RBV")

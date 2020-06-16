@@ -41,28 +41,22 @@ def parse_db(filename):
                     records[record.name] = record
                 else:
                     # Look for alias
-                    regex_alias_inside = r'alias\s*\(\s*"([\w_\-\:\[\]' \
-                                         r'<>;$\(\)]+)"\)'
+                    regex_alias_inside = r'alias\s*\(\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
                     ma_alias_inside = re.match(regex_alias_inside, line)
                     # Look for SIML
-                    reg_siml = r'\s+field\s*\(SIML,\s*"' \
-                               r'([\w_\-\:\[\]<>;$\(\)]+)"\)'
+                    reg_siml = r'\s+field\s*\(SIML,\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
                     ma_siml = re.match(reg_siml, line)
                     # Look for SDIS
-                    reg_sdis = r'\s+field\s*\(SDIS,\s*"' \
-                               r'([\w_\-\:\[\]<>;$\(\)]+)"\)'
+                    reg_sdis = r'\s+field\s*\(SDIS,\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
                     ma_sdis = re.match(reg_sdis, line)
                     # Look for DTYP
-                    reg_dtyp = r'\s+field\s*\(DTYP,\s*"' \
-                               r'([\w_\-\:\[\]<>;$\(\)\s]+)"\)'
+                    reg_dtyp = r'\s+field\s*\(DTYP,\s*"([\w_\-\:\[\]<>;$\(\)\s]+)"\)'
                     ma_dtyp = re.match(reg_dtyp, line)
                     # Look for NELM
-                    reg_nelm = r'\s+field\s*\(NELM,\s*"' \
-                               r'([\w_\-\:\[\]<>;$\(\)\s]+)"\)'
+                    reg_nelm = r'\s+field\s*\(NELM,\s*"([\w_\-\:\[\]<>;$\(\)\s]+)"\)'
                     ma_nelm = re.match(reg_nelm, line)
                     # Look for FTVL
-                    reg_ftvl = r'\s+field\s*\(FTVL,\s*"' \
-                               r'([\w_\-\:\[\]<>;$\(\)\s]+)"\)'
+                    reg_ftvl = r'\s+field\s*\(FTVL,\s*"([\w_\-\:\[\]<>;$\(\)\s]+)"\)'
                     ma_ftvl = re.match(reg_ftvl, line)
 
                     if not (ma_alias_inside is None):
@@ -98,5 +92,4 @@ def parse_db(filename):
                         alias_match.groups()[1], parent=alias_match.groups()[0]
                     )
                     records[alias_match.groups()[1]] = alias
-    
     return records
