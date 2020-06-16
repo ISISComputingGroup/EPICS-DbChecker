@@ -34,16 +34,16 @@ def get_sim_name(name):
             macro += ':'
         return macro + "SIM:" + pvname
     else:
-        return "SIM:" + pvname
+        return "SIM:" + name
 
 
 def add_waveform_specfic(nelm, ftvl):
-    str = ''
+    string = ''
     if not(nelm is None) or nelm == "":
-        str += '    field(NELM, "' + nelm + '")\n'
+        string += '    field(NELM, "' + nelm + '")\n'
     if not(ftvl is None) or ftvl == "":
-        str += '    field(FTVL, "' + ftvl + '")\n'
-    return str    
+        string += '    field(FTVL, "' + ftvl + '")\n'
+    return string
 
 
 def generate_single_record(original_record, name):
@@ -54,35 +54,39 @@ def generate_single_record(original_record, name):
             field(DTYP, "Soft Channel"){}
         }}
         
-        """.format(original_record.type, name, add_waveform_specfic(original_record.nelm, original_record.ftvl)))
+        """.format(
+            original_record.type, name, add_waveform_specfic(
+                original_record.nelm, original_record.ftvl
+            )
+        ))
 
 
 def generate_record_text(record, rb, sp, sp_rbv): 
-    str = ''
+    string_builder = ''
     if rb != '': 
         rb = get_sim_name(rb)
-        str += generate_single_record(record, rb)
+        string_builder += generate_single_record(record, rb)
         
         if sp != '':
             sp = get_sim_name(sp)
-            str += 'alias("'+ rb + '","' + sp + '")' + '\n' + '\n'
+            string_builder += 'alias("' + rb + '","' + sp + '")' + '\n\n'
             
         if sp_rbv != '':
             sp_rbv = get_sim_name(sp_rbv)
-            str += 'alias("'+ rb + '","' + sp_rbv + '")' + '\n' + '\n'
+            string_builder += 'alias("' + rb + '","' + sp_rbv + '")' + '\n\n'
     elif sp != '':
         sp = get_sim_name(sp)
-        str += generate_single_record(record, sp)
+        string_builder += generate_single_record(record, sp)
             
         if sp_rbv != '':
             sp_rbv = get_sim_name(sp_rbv)
-            str += 'alias("'+ sp + '","' + sp_rbv + '")' + '\n' + '\n'
+            string_builder += 'alias("' + sp + '","' + sp_rbv + '")' + '\n\n'
     elif sp_rbv != '':
         # Cannot think of any reason why a SP:RBV would exist on its own...
         sp_rbv = get_sim_name(sp_rbv)
-        str += generate_single_record(record, sp_rbv)
+        string_builder += generate_single_record(record, sp_rbv)
         
-    return str
+    return string_builder
 
 
 def find_common_macro(records):
@@ -131,7 +135,7 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
             typ = records[groups[g].main].type
             # Don't add simulation record unless the type is suitable
             if typ in ALLOWED_SIM_TYPES:            
-                print ("ADDED SIM RECORD = " + sim_record_name)
+                print("ADDED SIM RECORD = " + sim_record_name)
                 output += generate_record_text(
                     records[groups[g].main], groups[g].RB,
                     groups[g].SP, groups[g].SP_RBV
@@ -141,7 +145,9 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
 
 
 def generate_modifed_db(file_in_path, file_out_path="generated.db",
-                        records={}, insert_sims=True, insert_disable=True):
+                        records=None, insert_sims=True, insert_disable=True):
+    if records is None:
+        records = {}
     record_start_regex = r'record\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
 
     with open(file_in_path, 'r') as in_file, \
@@ -165,7 +171,7 @@ def generate_modifed_db(file_in_path, file_out_path="generated.db",
             out_file.write('}\n\n')
 
         if insert_disable and not dis_record_name in records:
-            out_file.write('record(bo, "' + dis_record_name +'") \n')
+            out_file.write('record(bo, "' + dis_record_name + '") \n')
             out_file.write('{\n')
             out_file.write('    field(DESC, "Disable comms")\n')
             out_file.write('    field(PINI, "YES")\n')
@@ -194,7 +200,7 @@ def generate_modifed_db(file_in_path, file_out_path="generated.db",
                         if insert_sims and curr_record.siml is None:
                             name = get_sim_name(curr_record.name)
                             out_file.write(
-                                '    field(SIML, "' + sim_record_name +'")\n'
+                                '    field(SIML, "' + sim_record_name + '")\n'
                             )
                             out_file.write('    field(SIOL, "' + name + '")\n')
                         if insert_disable and curr_record.sdis is None:
@@ -233,5 +239,5 @@ if __name__ == '__main__':
         f = os.path.split(file)
         out = "sim_" + f[-1] 
     
-    records = parse_db(file)
-    generate_modifed_db(file, out, records)
+    db_records = parse_db(file)
+    generate_modifed_db(file, out, db_records)
