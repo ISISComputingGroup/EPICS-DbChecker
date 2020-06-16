@@ -43,13 +43,13 @@ class Grouper:
                         continue
                 else:
                     # Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
-                    if not (ma1 is None):
+                    if ma1 is not None:
                         s = ma1.groups()[0]
                         if not (s in record_groups.keys()):
                             record_groups[s] = RecordGroup(s, name)
                             record_groups[s].SP_RBV = name
                             continue
-                    elif not (ma2 is None):
+                    elif ma2 is not None:
                         s = ma2.groups()[0]
                         if not (s in record_groups.keys()):
                             record_groups[s] = RecordGroup(s, name)

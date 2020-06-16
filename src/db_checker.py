@@ -34,21 +34,21 @@ class DbChecker:
         
         # Check for consistency in whether PV macros are followed by colons
         colon = None
-        for r in records.keys():
+        for r in records:
             if colon is None:
-                n = self.remove_macro(r, False)
+                n = self.remove_macro(r["name"], False)
                 colon = n.startswith(':')
             else:
-                n = self.remove_macro(r, False)
+                n = self.remove_macro(r["name"], False)
                 if n.startswith(':') != colon:
                     if colon:
                         self.errors.append(
-                            "FORMAT ERROR: " + r +
+                            "FORMAT ERROR: " + r["name"] +
                             " should have a colon after the macro"
                         )
                     else:
                         self.errors.append(
-                            "FORMAT ERROR: " + r +
+                            "FORMAT ERROR: " + r["name"] +
                             " should not have a colon after the macro"
                         )
         
