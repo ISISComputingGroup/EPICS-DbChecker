@@ -1,4 +1,5 @@
 import re
+import pdb
 from src.records import Alias
 from src.grouper import Grouper
 from src.db_parser.parser import Parser
@@ -22,14 +23,16 @@ from src.db_parser.lexer import Lexer
 
 class DbChecker:
     def __init__(self, filename, debug=False):
-        self.file = filename
+        self.filename = filename
+        self.file = open(filename)
         self.errors = []
         self.warnings = []
         self.debug = debug
         
     def check(self):
-        print("\n** CHECKING {} **".format(self.file))
-        records = Parser(Lexer(self.file)).db()
+        print("\n** CHECKING {} **".format(self.filename))
+        records = Parser(Lexer(self.file.read())).db()
+        self.file.close()
         grouper = Grouper()
         
         # Check for consistency in whether PV macros are followed by colons
@@ -51,13 +54,12 @@ class DbChecker:
                             "FORMAT ERROR: " + r["name"] +
                             " should not have a colon after the macro"
                         )
-        
-        groups = grouper.group_records(records)
-        
+        record_names = [record['name'] for record in records]
+        records_dict = {name: record for name, record in zip(record_names, records)}
+        groups = grouper.group_records(records_dict)
         if self.debug:
             for s in groups.keys():
                 print(s, groups[s].RB, groups[s].SP, groups[s].SP_RBV)
-        
         for s in groups.keys():
             self.check_case(groups[s])
             self.check_chars(groups[s])
