@@ -13,23 +13,23 @@ class TestWithDBExamples(unittest.TestCase):
 
     def test_agilent(self):
         filepath = join(self.test_folder, "Agilent_33220A.db")
-        self.run_check(filepath)
+        self.run_check(filepath, 24, 0)
 
     def test_fl300(self):
         filepath = join(self.test_folder, "FL300.db")
-        self.run_check(filepath)
+        self.run_check(filepath, 1, 0)
 
     def test_isisbeam(self):
         filepath = join(self.test_folder, "isisbeam.db")
-        self.run_check(filepath)
+        self.run_check(filepath, 0, 0)
 
     def test_kepco(self):
         filepath = join(self.test_folder, "kepco.db")
-        self.run_check(filepath)
+        self.run_check(filepath, 0, 2)
 
     def test_stanford(self):
         filepath = join(self.test_folder, "Stanford_PS350.db")
-        self.run_check(filepath)
+        self.run_check(filepath, 0, 0)
 
     def run_check(self, filepath, expected_errors, expected_warnings):
         dbc = DbChecker(filepath, False)
