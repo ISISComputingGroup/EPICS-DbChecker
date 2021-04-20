@@ -31,6 +31,10 @@ class TestWithDBExamples(unittest.TestCase):
         filepath = join(self.test_folder, "Stanford_PS350.db")
         self.run_check(filepath, 0, 0)
 
+    def test_pv_all(self):
+        filepath = join(self.test_folder, "test_all.db")
+        self.run_check(filepath, 3, 0)
+
     def run_check(self, filepath, expected_errors, expected_warnings):
         dbc = DbChecker(filepath, False)
         warnings, errors = dbc.check()

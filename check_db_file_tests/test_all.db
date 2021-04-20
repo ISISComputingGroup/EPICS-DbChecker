@@ -1,0 +1,164 @@
+#Tests script correctly identifies errors in rst document
+
+######  Error 1  #######
+
+record(ao, "SHOULDFAIL:NOUNITS") 
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "test description")
+}
+
+record(ao, "SHOULDPASS:HASUNITS") 
+{
+	info(INTEREST, "HIGH")
+	field(EGU, "A")
+	field(DESC, "test description")
+}
+
+record(stringin, "SHOULDPASS:UNINTERESTINGTYPE") 
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "test description")
+}
+
+######  Error 2  #######
+
+record(ao, "SHOULDFAIL:LONGDESC") 
+{
+	field(DESC, "this text should be longer than 40 characters")
+}
+
+record(ao, "SHOULDPASS:SHORTDESC") 
+{
+	field(DESC, "this text is short")
+}
+
+######  Error 3  #######
+
+record(ao, "SHOULDPASS:GOODUNIT") 
+{
+	field(EGU, "A")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT") 
+{
+	field(EGU, "BADUNIT")
+}
+
+######  Error 4  #######
+
+record(stringin, "SHOULDPASS:HASDESC") 
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "test description")
+}
+
+record(stringin, "SHOULDFAIL:NODESC") 
+{
+	info(INTEREST, "HIGH")
+}
+
+record(stringin, "SHOULDPASS:NOINTEREST")
+{
+}
+
+######  Error 5  #######
+
+record(stringin, "SHOULDPASS:GOODPV") 
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "test description")
+}
+
+record(stringin, "SHOULDFAIL:lowercase") 
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "test description")
+}
+
+record(stringin, "SHOULDFAIL:b@dchars") 
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "test description")
+}
+
+######  Error 6  #######
+
+record(ao, "SHOULDFAIL:DUPLICATE:EGU") 
+{
+	field(EGU, "A")
+	field(EGU, "T")
+}
+
+record(ao, "SHOULDFAIL:DUPLICATE:PINI") 
+{
+	field(PINI, 1)
+	field(PINI, 0)
+}
+
+######  Error 7  #######
+
+record(calc, "SHOULDFAIL:CALCNOREADONLY")
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "test description")
+	field(EGU, "A")
+}
+
+record(ao, "SHOULDPASS:CALCWITHREADONLY")
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "test description")
+	field(EGU, "A")
+	field(ASG, "READONLY")
+}
+
+######  Error 8  #######
+
+record(calc, "SHOULDFAIL:BROKENRECORD")
+{
+    # Uncomment the below line to check that the system 
+	# reacts appropriately to a completely broken record.
+	# field(EGU
+}
+
+######  Warning 1  #######
+
+record(stringin, "SHOULDPASS:BLANK:DESC") 
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "")
+}
+
+record(stringin, "SHOULDPASS:BLANK:PINI") 
+{
+	info(INTEREST, "HIGH")
+	field(DESC, "TEST")
+	field(PINI, 1)
+}
+
+######  Warning 2  #######
+
+record(ao, "SHOULDPASS:MULTIPLEWARNING")
+{}
+
+record(calc, "SHOULDPASS:MULTIPLEFIELDS") {
+    field(CALC, "(C=0||C=2)?A:B")  # If heater is present and switched off, display persistent field, else display PSU field
+    field(ASG, "READONLY")
+}
+
+record(calc, "SHOULDPASS:HASHINSTRING") {
+    field(CALC, "(C=0||C=2)?A:#C") 
+    field(ASG, "READONLY")
+}
+
+record(calc, "SHOULDPASS:HASHINSTRINGANDCOMMENT") {
+    field(CALC, "(C=0||C=2)?A:#D") #This is a comment with field in it
+    field(ASG, "READONLY")
+}
+
+
+record(calc, "SHOULDPASS:COMMENTEDOUTFIELDSS") {
+    #This is a comment with field in it field(CALC, "(C=0||C=2)?A:#D") 
+    field(ASG, "READONLY")
+}

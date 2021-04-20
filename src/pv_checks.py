@@ -264,14 +264,30 @@ def get_log_info_tags(db):
     return failures
 
 
+check_error = [(get_interest_syntax, "Error, Syntax not valid for interesting PV"),
+               (get_interest_descriptions, "Error, Interesting PV requires description"),
+               (get_units_valid, "Error, invalid units"),
+               (get_desc_length, "Error, descriptions longer than 40 chars not allowed"),
+               (get_interest_calc_readonly, "Error, Interesting calc fields must be read only"),
+               (get_interest_units, "Error, Interesting fields must have units"),
+               (get_multiple_properties_on_pvs, "Error PVs must not have duplicate fields")]
+check_warning = [(get_multiple_instances, "Warning, duplicate PVs detected")]
+
+
 def run_pv_checks(db):
-    error_report = ""
-    error_report += build_failure_message("Error, interesting PV Syntax", get_interest_syntax(db))
-    error_report += build_failure_message("Error, interesting PV requires description", get_interest_descriptions(db))
-    error_report += build_failure_message("Error, invalid units", get_units_valid(db))
-    error_report += build_failure_message("Error, description length", get_desc_length(db))
-    error_report += build_failure_message("Error, interesting calc read only", get_interest_calc_readonly(db))
-    error_report += build_failure_message("Error, interesting units", get_interest_units(db))
-    error_report += build_failure_message("Error, multiple properties", get_multiple_properties_on_pvs(db))
-    error_report += build_failure_message("Error, multiple instances", get_multiple_instances(db))
-    print(error_report+"\n")
+    """
+    This method runs through the checks and returns the total number of errors and warnings.
+    """
+    num_errors = 0
+    num_warnings = 0
+    for check in check_error:
+        errors = check[0](db)
+        num_errors += len(errors)
+        if errors:
+            print(build_failure_message(check[1], errors))
+    for check in check_warning:
+        warnings = check[0](db)
+        num_warnings += len(warnings)
+        if warnings:
+            print(build_failure_message(check[1], warnings))
+    return num_errors

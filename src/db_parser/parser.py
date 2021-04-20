@@ -125,7 +125,8 @@ class Parser(object):
             tuple of (key, value)
         """
         self.consume(TokenTypes.INFO)
-        return self.key_value_pair()
+        # return self.key_value_pair()
+        return Field(*self.key_value_pair())
 
     def alias_field(self):
         """
