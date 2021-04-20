@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 from src.db_parser.tokens import TokenTypes
 from src.db_parser.common import DbSyntaxError
-from src.db_parser.EPICS_collections import Field, Record
+from src.db_parser.EPICS_collections import *
 
 class Parser(object):
     """
@@ -199,15 +199,15 @@ class Parser(object):
         Returns:
             List of records, aliases where each record follows the format described in  record()
         """
-        records = []
+        records = Db("", [])
         while self.current_token.type != TokenTypes.EOF:
             if self.current_token.type == TokenTypes.RECORD:
-                records.append(self.record())
+                records.records.append(self.record())
             elif self.current_token.type == TokenTypes.ALIAS:
                 pv, alias = self.alias()
                 # Find the record that this alias belongs to, and add the alias to it.
                 # Don't error if we can't find the record that it belongs to - it might be in another DB
-                for rec in records:
+                for rec in records.records:
                     if pv == rec.pv or pv in rec.aliases:
                         rec.aliases.append(alias)
                         break

@@ -38,7 +38,7 @@ class DbChecker:
 
         # Check for consistency in whether PV macros are followed by colons
         colon = None
-        for r in records:
+        for r in records.records:
             if colon is None:
                 n = self.remove_macro(r.pv, False)
                 colon = n.startswith(':')
@@ -56,9 +56,9 @@ class DbChecker:
                             " should not have a colon after the macro"
                         )
         # Get list of all aliases and flatten it down.
-        aliases = [alias for list in [record.aliases for record in records] for alias in list]
-        record_names = [record.pv for record in records]
-        records_dict = {name: record for name, record in zip(record_names, records)}
+        aliases = [alias for list in [record.aliases for record in records.records] for alias in list]
+        record_names = [record.pv for record in records.records]
+        records_dict = {name: record for name, record in zip(record_names, records.records)}
         groups = grouper.group_records(records_dict)
         if self.debug:
             for s in groups.keys():
