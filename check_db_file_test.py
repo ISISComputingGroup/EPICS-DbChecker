@@ -25,7 +25,7 @@ class TestWithDBExamples(unittest.TestCase):
 
     def test_kepco(self):
         filepath = join(self.test_folder, "kepco.db")
-        self.run_check(filepath, 0, 2)
+        self.run_check(filepath, 2, 0)
 
     def test_stanford(self):
         filepath = join(self.test_folder, "Stanford_PS350.db")
