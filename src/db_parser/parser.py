@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 from src.db_parser.tokens import TokenTypes
 from src.db_parser.common import DbSyntaxError
-
+from src.db_parser.EPICS_collections import Field, Record
 
 class Parser(object):
     """
@@ -113,7 +113,8 @@ class Parser(object):
             tuple of (key, value)
         """
         self.consume(TokenTypes.FIELD)
-        return self.key_value_pair()
+        # return self.key_value_pair()
+        return Field(*self.key_value_pair())
 
     def info(self):
         """
@@ -165,8 +166,8 @@ class Parser(object):
 
         # Special case for records with no body
         if self.current_token.type != TokenTypes.L_BRACE:
-            return {"type": record_type, "name": record_name, "fields": [], "infos": [], "aliases": []}
-
+            # return {"type": record_type, "name": record_name, "fields": [], "infos": [], "aliases": []}
+            return Record(record_type, record_name, [], [], [])
         with self.brace_delimited_block():
             while self.current_token.type != TokenTypes.R_BRACE:
                 if self.current_token.type == TokenTypes.FIELD:
@@ -178,7 +179,8 @@ class Parser(object):
                 else:
                     self.raise_error("Expected info, field or alias")
 
-        return {"type": record_type, "name": record_name, "fields": fields, "infos": infos, "aliases": aliases}
+        # return {"type": record_type, "name": record_name, "fields": fields, "infos": infos, "aliases": aliases}
+        return Record(record_type, record_name, infos, fields, aliases)
 
     def alias(self):
         """
@@ -206,8 +208,8 @@ class Parser(object):
                 # Find the record that this alias belongs to, and add the alias to it.
                 # Don't error if we can't find the record that it belongs to - it might be in another DB
                 for rec in records:
-                    if pv == rec["name"] or pv in rec["aliases"]:
-                        rec["aliases"].append(alias)
+                    if pv == rec.pv or pv in rec.aliases:
+                        rec.aliases.append(alias)
                         break
             else:
                 self.raise_error("Expected record or alias")

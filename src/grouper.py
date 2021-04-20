@@ -54,8 +54,8 @@ class Grouper:
                         record_groups[s].SP = name
 
                         # Not sure this is the best approach here, but it does appear to pass tests.
-                        if records[name]["aliases"]:
-                            record_groups[s].RB = records[name]["aliases"][0]
+                        if records[name].aliases:
+                            record_groups[s].RB = records[name].aliases[0]
                         continue
 
         # Now find the related names

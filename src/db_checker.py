@@ -40,24 +40,24 @@ class DbChecker:
         colon = None
         for r in records:
             if colon is None:
-                n = self.remove_macro(r["name"], False)
+                n = self.remove_macro(r.pv, False)
                 colon = n.startswith(':')
             else:
-                n = self.remove_macro(r["name"], False)
+                n = self.remove_macro(r.pv, False)
                 if n.startswith(':') != colon:
                     if colon:
                         self.errors.append(
-                            "FORMAT ERROR: " + r["name"] +
+                            "FORMAT ERROR: " + r.pv +
                             " should have a colon after the macro"
                         )
                     else:
                         self.errors.append(
-                            "FORMAT ERROR: " + r["name"] +
+                            "FORMAT ERROR: " + r.pv +
                             " should not have a colon after the macro"
                         )
         # Get list of all aliases and flatten it down.
-        aliases = [alias for list in [record["aliases"] for record in records] for alias in list]
-        record_names = [record["name"] for record in records]
+        aliases = [alias for list in [record.aliases for record in records] for alias in list]
+        record_names = [record.pv for record in records]
         records_dict = {name: record for name, record in zip(record_names, records)}
         groups = grouper.group_records(records_dict)
         if self.debug:
