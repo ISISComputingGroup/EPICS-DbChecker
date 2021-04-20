@@ -30,7 +30,6 @@ class Grouper:
         # Find potential stems
         for name in names:
             # Stems are pure records, not aliases
-            print(records)
             ma1 = re.match(
                 r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
             )

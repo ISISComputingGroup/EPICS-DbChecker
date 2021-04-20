@@ -211,5 +211,4 @@ class Parser(object):
                         break
             else:
                 self.raise_error("Expected record or alias")
-        print(records)
         return records
