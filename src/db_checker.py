@@ -1,6 +1,6 @@
 import re
 import pdb
-from src.records import Alias
+from src.pv_checks import run_pv_checks
 from src.grouper import Grouper
 from src.db_parser.parser import Parser
 from src.db_parser.lexer import Lexer
@@ -34,6 +34,7 @@ class DbChecker:
         print("\n** CHECKING {} **".format(self.filename))
         records = Parser(Lexer(self.file.read())).db()
         self.file.close()
+        run_pv_checks(records)
         grouper = Grouper()
 
         # Check for consistency in whether PV macros are followed by colons
@@ -76,6 +77,7 @@ class DbChecker:
 
         print("** WARNING COUNT = {} **".format(len(self.warnings)))
         print("** ERROR COUNT = {}".format(len(self.errors)))
+
         return len(self.warnings), len(self.errors)
 
     def remove_macro(self, pvname, remove_colon=True):
