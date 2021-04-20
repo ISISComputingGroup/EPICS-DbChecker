@@ -265,6 +265,7 @@ def get_log_info_tags(db):
 
 
 check_error = [(get_interest_syntax, "Error, Syntax not valid for interesting PV"),
+               # consider removing get_interest_syntax, this should be caught by the general checker
                (get_interest_descriptions, "Error, Interesting PV requires description"),
                (get_units_valid, "Error, invalid units"),
                (get_desc_length, "Error, descriptions longer than 40 chars not allowed"),
@@ -290,4 +291,6 @@ def run_pv_checks(db):
         num_warnings += len(warnings)
         if warnings:
             print(build_failure_message(check[1], warnings))
+    print("**  PV ERROR COUNT = {} **".format(num_errors))
+    print("**  PV WARNING COUNT = {} **".format(num_warnings))
     return num_errors
