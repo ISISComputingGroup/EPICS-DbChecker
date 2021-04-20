@@ -73,6 +73,7 @@ class DbChecker:
                                 
         print("** WARNING COUNT = {} **".format(len(self.warnings)))
         print("** ERROR COUNT = {}".format(len(self.errors)))
+        return len(self.warnings), len(self.errors)
         
     def remove_macro(self, pvname, remove_colon=True):
         if pvname.find('$') != -1:
