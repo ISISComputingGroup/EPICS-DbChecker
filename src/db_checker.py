@@ -5,6 +5,7 @@ from src.grouper import Grouper
 from src.db_parser.parser import Parser
 from src.db_parser.lexer import Lexer
 
+
 # Rules implemented:
 # 1) Name should be uppercase
 # 2) Colons are used as main separator
@@ -28,13 +29,13 @@ class DbChecker:
         self.errors = []
         self.warnings = []
         self.debug = debug
-        
+
     def check(self):
         print("\n** CHECKING {} **".format(self.filename))
         records = Parser(Lexer(self.file.read())).db()
         self.file.close()
         grouper = Grouper()
-        
+
         # Check for consistency in whether PV macros are followed by colons
         colon = None
         for r in records:
@@ -54,7 +55,9 @@ class DbChecker:
                             "FORMAT ERROR: " + r["name"] +
                             " should not have a colon after the macro"
                         )
-        record_names = [record['name'] for record in records]
+        # Get list of all aliases and flatten it down.
+        aliases = [alias for list in [record["aliases"] for record in records] for alias in list]
+        record_names = [record["name"] for record in records]
         records_dict = {name: record for name, record in zip(record_names, records)}
         groups = grouper.group_records(records_dict)
         if self.debug:
@@ -63,18 +66,18 @@ class DbChecker:
         for s in groups.keys():
             self.check_case(groups[s])
             self.check_chars(groups[s])
-            self.check_candidates(groups[s], records)
-                
+            self.check_candidates(groups[s], aliases)
+
         for w in self.warnings:
             print(w)
-                    
+
         for e in self.errors:
             print(e)
-                                
+
         print("** WARNING COUNT = {} **".format(len(self.warnings)))
         print("** ERROR COUNT = {}".format(len(self.errors)))
         return len(self.warnings), len(self.errors)
-        
+
     def remove_macro(self, pvname, remove_colon=True):
         if pvname.find('$') != -1:
             left = pvname.rfind(')') + 1
@@ -91,24 +94,26 @@ class DbChecker:
                 self.errors.append(
                     "CASING ERROR: " + name + " should be upper-case"
                 )
+
         check(group.RB)
         check(group.SP)
         check(group.SP_RBV)
-            
+
     def check_chars(self, group):
         def check(name):
-            name = self.remove_macro(name)            
+            name = self.remove_macro(name)
             # Only contains a-z A-Z 0-9 _ :
             se = re.search(r'[^\w_:]', name)
             if se is not None:
                 self.errors.append(
                     "CHARACTER ERROR: " + name + " contains illegal characters"
                 )
+
         check(group.RB)
         check(group.SP)
         check(group.SP_RBV)
-            
-    def check_candidates(self, group, records):  
+
+    def check_candidates(self, group, aliases):
         ma1 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", group.main)
         ma2 = re.match(
             r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$",
@@ -122,7 +127,8 @@ class DbChecker:
                     "FORMAT ERROR: " + group.SP +
                     " does not have a correctly named readback alias"
                 )
-            elif group.RB != '' and isinstance(records[group.RB], Alias):
+                print(group.SP)
+            elif group.RB != '' and group.RB in aliases:
                 # This is okay
                 return
             else:
@@ -153,7 +159,7 @@ class DbChecker:
                         "PARAMETER ERROR: " + group.RB +
                         " has a :SP but not a :SP:RBV"
                     )
-                    
+
                 # Finally check the format of the SP and SP:RBV (rule 4)
                 if group.SP != "" and not group.SP.endswith(':SP'):
                     self.errors.append(
