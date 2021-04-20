@@ -30,31 +30,31 @@ class Grouper:
         # Find potential stems
         for name in names:
             # Stems are pure records, not aliases
-            if isinstance(records[name], Record):
-                ma1 = re.match(
-                    r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
-                )
-                ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
-                if ma1 is None and ma2 is None:
-                    # Something like DUMMYPV would get here
-                    if not (name in record_groups.keys()):
-                        record_groups[name] = RecordGroup(name, name)
-                        record_groups[name].RB = name
+            print(records)
+            ma1 = re.match(
+                r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
+            )
+            ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
+            if ma1 is None and ma2 is None:
+                # Something like DUMMYPV would get here
+                if not (name in record_groups.keys()):
+                    record_groups[name] = RecordGroup(name, name)
+                    record_groups[name].RB = name
+                    continue
+            else:
+                # Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
+                if ma1 is not None:
+                    s = ma1.groups()[0]
+                    if not (s in record_groups.keys()):
+                        record_groups[s] = RecordGroup(s, name)
+                        record_groups[s].SP_RBV = name
                         continue
-                else:
-                    # Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
-                    if ma1 is not None:
-                        s = ma1.groups()[0]
-                        if not (s in record_groups.keys()):
-                            record_groups[s] = RecordGroup(s, name)
-                            record_groups[s].SP_RBV = name
-                            continue
-                    elif ma2 is not None:
-                        s = ma2.groups()[0]
-                        if not (s in record_groups.keys()):
-                            record_groups[s] = RecordGroup(s, name)
-                            record_groups[s].SP = name
-                            continue         
+                elif ma2 is not None:
+                    s = ma2.groups()[0]
+                    if not (s in record_groups.keys()):
+                        record_groups[s] = RecordGroup(s, name)
+                        record_groups[s].SP = name
+                        continue
 
         # Now find the related names
         for name in names:
