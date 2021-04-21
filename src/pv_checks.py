@@ -207,40 +207,36 @@ def get_log_info_tags(db):
     """
     failures = []
 
-    dbs_by_paths = {}
-    # group dbs by directory hopefully these are all the db records for one IOC
-    dbs_by_path = dbs_by_paths.get(os.path.dirname(db.directory), [])
-    dbs_by_path.append(db)
-    dbs_by_paths[db.directory] = dbs_by_path
+    # This originally was trying to check for duplicate logs etc. across multible files simultaneously, but was failing
+    # possible future change?
 
-    for key, dir_dbs in dbs_by_paths.items():
-        log_fields = {}
-        logging_period = None
-        for db in dir_dbs:
-            for rec in db.records:
-                for info in rec.infos:
-                    info_name = info.name.lower().strip('"')
-                    if info_name.startswith("log"):
-                        previous_source = log_fields.get(info_name, None)
-                        if previous_source is not None:
-                            failures.append(
-                                "Invalid logging config: "
-                                "{source} repeats the log info tag "
-                                "{tag}".format(source=rec, tag=info_name)
-                            )
-                        else:
-                            log_fields[info_name] = (db, rec)
+    log_fields = {}
+    logging_period = None
 
-                    if info_name == "log_period_seconds" or \
-                            info_name == "log_period_pv":
-                        if logging_period is None:
-                            logging_period = (db, rec)
-                        else:
-                            failures.append(
-                                "Invalid logging config: "
-                                "{source} alters the logging period "
-                                "type".format(source=rec, tag=info_name)
-                            )
+    for rec in db.records:
+        for info in rec.infos:
+            info_name = info.name.lower().strip('"')
+            if info_name.startswith("log"):
+                previous_source = log_fields.get(info_name, None)
+                if previous_source is not None:
+                    failures.append(
+                        "Invalid logging config: "
+                        "{source} repeats the log info tag "
+                        "{tag}".format(source=rec, tag=info_name)
+                    )
+                else:
+                    log_fields[info_name] = (db, rec)
+
+            if info_name == "log_period_seconds" or \
+                    info_name == "log_period_pv":
+                if logging_period is None:
+                    logging_period = (db, rec)
+                else:
+                    failures.append(
+                        "Invalid logging config: "
+                        "{source} alters the logging period "
+                        "type".format(source=rec, tag=info_name)
+                    )
 
     return failures
 
@@ -251,7 +247,8 @@ check_error = [(get_interest_descriptions, "Error, Interesting PV requires descr
                (get_desc_length, "Error, descriptions longer than 40 chars not allowed"),
                (get_interest_calc_readonly, "Error, Interesting calc fields must be read only"),
                (get_interest_units, "Error, Interesting fields must have units"),
-               (get_multiple_properties_on_pvs, "Error PVs must not have duplicate fields")]
+               (get_multiple_properties_on_pvs, "Error PVs must not have duplicate fields"),
+               (get_log_info_tags, "Error, Logging")]
 # List of Warnings to check for and there message.
 check_warning = [(get_multiple_instances, "Warning, duplicate PVs detected")]
 

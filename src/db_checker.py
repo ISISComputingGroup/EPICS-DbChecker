@@ -1,9 +1,9 @@
 import re
-import pdb
-from src.pv_checks import run_pv_checks
-from src.grouper import Grouper
-from src.db_parser.parser import Parser
+
 from src.db_parser.lexer import Lexer
+from src.db_parser.parser import Parser
+from src.grouper import Grouper
+from src.pv_checks import run_pv_checks
 
 
 # Rules implemented:
@@ -29,7 +29,6 @@ class DbChecker:
         self.errors = []
         self.warnings = []
         self.debug = debug
-        self.parsed_db = None
         self.parsed_db = Parser(Lexer(self.file.read())).db()
         self.file.close()
 
