@@ -245,12 +245,14 @@ def get_log_info_tags(db):
     return failures
 
 
+# List of Errors to check for and there message.
 check_error = [(get_interest_descriptions, "Error, Interesting PV requires description"),
                (get_units_valid, "Error, invalid units"),
                (get_desc_length, "Error, descriptions longer than 40 chars not allowed"),
                (get_interest_calc_readonly, "Error, Interesting calc fields must be read only"),
                (get_interest_units, "Error, Interesting fields must have units"),
                (get_multiple_properties_on_pvs, "Error PVs must not have duplicate fields")]
+# List of Warnings to check for and there message.
 check_warning = [(get_multiple_instances, "Warning, duplicate PVs detected")]
 
 
@@ -270,6 +272,4 @@ def run_pv_checks(db):
         num_warnings += len(warnings)
         if warnings:
             print(build_failure_message(check[1], warnings))
-    print("**  PV ERROR COUNT = {} **".format(num_errors))
-    print("**  PV WARNING COUNT = {} **".format(num_warnings))
-    return num_errors
+    return num_warnings, num_errors

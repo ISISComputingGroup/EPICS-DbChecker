@@ -29,17 +29,23 @@ class DbChecker:
         self.errors = []
         self.warnings = []
         self.debug = debug
-
-    def check(self):
-        print("\n** CHECKING {} **".format(self.filename))
-        records = Parser(Lexer(self.file.read())).db()
+        self.parsed_db = None
+        self.parsed_db = Parser(Lexer(self.file.read())).db()
         self.file.close()
-        pv_errors = run_pv_checks(records)
-        grouper = Grouper()
 
+    def pv_check(self):
+        print("\n** CHECKING {}'s PVs **".format(self.filename))
+        warnings, errors = run_pv_checks(self.parsed_db)
+        print("**  PV ERROR COUNT = {} **".format(errors))
+        print("**  PV WARNING COUNT = {} **".format(warnings))
+        return warnings, errors
+
+    def syntax_check(self):
+        print("\n** CHECKING {}'s Syntax **".format(self.filename))
+        grouper = Grouper()
         # Check for consistency in whether PV macros are followed by colons
         colon = None
-        for r in records.records:
+        for r in self.parsed_db.records:
             if colon is None:
                 n = self.remove_macro(r.pv, False)
                 colon = n.startswith(':')
@@ -57,9 +63,9 @@ class DbChecker:
                             " should not have a colon after the macro"
                         )
         # Get list of all aliases and flatten it down.
-        aliases = [alias for list in [record.aliases for record in records.records] for alias in list]
-        record_names = [record.pv for record in records.records]
-        records_dict = {name: record for name, record in zip(record_names, records.records)}
+        aliases = [alias for list in [record.aliases for record in self.parsed_db.records] for alias in list]
+        record_names = [record.pv for record in self.parsed_db.records]
+        records_dict = {name: record for name, record in zip(record_names, self.parsed_db.records)}
         groups = grouper.group_records(records_dict)
         if self.debug:
             for s in groups.keys():
@@ -78,7 +84,7 @@ class DbChecker:
         print("** WARNING COUNT = {} **".format(len(self.warnings)))
         print("** ERROR COUNT = {} **".format(len(self.errors)))
 
-        return len(self.warnings), len(self.errors), pv_errors
+        return len(self.warnings), len(self.errors)
 
     def remove_macro(self, pvname, remove_colon=True):
         if pvname.find('$') != -1:
