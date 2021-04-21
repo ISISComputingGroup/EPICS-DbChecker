@@ -1,0 +1,18 @@
+record(ao, "SHOULDPASS:HEADER_FIRST")
+{
+	field(DESC, "test description")
+	info("LOG_HEADER1", "a header")
+	info("LOG_period_seconds", "another header")
+}
+
+record(ao, "SHOULDFAIL:HEADER_REPEAT")
+{
+	field(DESC, "test description")
+	info("LOG_HEADER1", "another header")
+}
+
+record(ao, "SHOULDFAIL:LOGGING_PERIOD_REDEFINE")
+{
+	field(DESC, "test description")
+	info("LOG_period_pv", "another header")
+}

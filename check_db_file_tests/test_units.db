@@ -1,0 +1,137 @@
+record(ao, "SHOULDPASS:CM") 
+{
+	field(DESC, "test description")
+	field(EGU, "cm")
+}
+
+record(ao, "SHOULDPASS:M") 
+{
+	field(DESC, "test description")
+	field(EGU, "m")
+}
+
+record(ao, "SHOULDPASS:KM") 
+{
+	field(DESC, "test description")
+	field(EGU, "km")
+}
+
+record(ao, "SHOULDPASS:KBYTE") 
+{
+	field(DESC, "test description")
+	field(EGU, "kbyte")
+}
+
+record(ao, "SHOULDPASS:BITS_OVER_KBYTE") 
+{
+	field(DESC, "test description")
+	field(EGU, "bit/kbyte")
+}
+
+record(ao, "SHOULDPASS:CDEG")
+{
+	field(DESC, "Used by GEMORC")
+	field(EGU, "cdeg")
+}
+
+record(ao, "SHOULDPASS:CDEG_OVER_SS")
+{
+	field(DESC, "Used by GEMORC because cdeg/s^2 too long")
+	field(EGU, "cdeg/ss")
+}
+
+record(ao, "SHOULDPASS:m_OVER_s") 
+{
+	field(DESC, "test description")
+	field(EGU, "m/s")
+}
+
+record(ao, "SHOULDPASS:1_over")
+{
+	field(EGU, "1/cm")
+}
+
+record(ao, "SHOULDPASS:MM-1S-1") 
+{
+	field(DESC, "test description")
+	field(EGU, "m/(m s)")
+}
+
+record(ao, "SHOULDFAIL:BITS_KBYTE^-1")
+{
+	field(DESC, "prefer bit/kbyte")
+	field(EGU, "bit kbyte^-1")
+}
+
+record(ao, "SHOULDFAIL:M-1")
+{
+	field(DESC, "test prefer 1/m")
+	field(EGU, "m^-1")
+}
+
+record(ao, "SHOULDFAIL:m_S-1")
+{
+	field(DESC, "test prefer m/s")
+	field(EGU, "m s^-1")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:KKM") 
+{
+	field(DESC, "test description")
+	field(EGU, "kkm")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:KMK") 
+{
+	field(DESC, "test description")
+	field(EGU, "kmk")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:KM-1_S-1")
+{
+	field(DESC, "k is not a unit")
+	field(EGU, "k/(m s)")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:MA-1S-1") 
+{
+	field(DESC, "test description")
+	field(EGU, "m/(As)")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:DM") 
+{
+	field(DESC, "test description")
+	field(EGU, "dm")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:CAPS") 
+{
+	field(DESC, "test description")
+	field(EGU, "kM")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:CAPS_2") 
+{
+	field(DESC, "test description")
+	field(EGU, "Km")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:1")
+{
+	field(EGU, "1")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:negative_square_power")
+{
+	field(DESC, "prefer 1/m^2")
+	field(EGU, "m^-2")
+}
+
+record(ao, "SHOULDFAIL:BADUNIT:negative_power")
+{
+	field(DESC, "prefer 1/m")
+	field(EGU, "m^-1")
+}
+
+

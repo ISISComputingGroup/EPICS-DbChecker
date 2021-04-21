@@ -1,0 +1,4 @@
+record(ao, "SHOULDPASS:MULTIPLEWARNING")
+{}
+record(ao, "SHOULDPASS:MULTIPLEWARNING")
+{}
