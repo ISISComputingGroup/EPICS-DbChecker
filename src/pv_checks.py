@@ -200,25 +200,6 @@ def get_interest_descriptions(db):
     return failures
 
 
-def get_interest_syntax(db):
-    """
-    This method tests that all interesting PVs that are not in the names
-    exception list are capitalised and contain only A-Z 0-9 _ :
-    """
-    failures = []
-
-    for rec in db.records:
-        if rec.is_interest():
-            mypv = re.sub(r'\$\(.*\)', '', rec.pv)  # remove macros
-            se = re.search(r'[^\w:]', mypv)
-            if se is not None:
-                failures.append("{} contains illegal characters".format(rec))
-            if len(mypv) > 0 and not mypv.isupper():
-                failures.append("{} should be upper-case".format(rec))
-
-    return failures
-
-
 def get_log_info_tags(db):
     """
     This method checks logging records to check that logging tags are not
@@ -264,9 +245,7 @@ def get_log_info_tags(db):
     return failures
 
 
-check_error = [(get_interest_syntax, "Error, Syntax not valid for interesting PV"),
-               # consider removing get_interest_syntax, this should be caught by the general checker
-               (get_interest_descriptions, "Error, Interesting PV requires description"),
+check_error = [(get_interest_descriptions, "Error, Interesting PV requires description"),
                (get_units_valid, "Error, invalid units"),
                (get_desc_length, "Error, descriptions longer than 40 chars not allowed"),
                (get_interest_calc_readonly, "Error, Interesting calc fields must be read only"),

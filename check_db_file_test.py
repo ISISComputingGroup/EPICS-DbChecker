@@ -33,7 +33,7 @@ class TestWithDBExamples(unittest.TestCase):
 
     def test_pv_all(self):
         filepath = join(self.test_folder, "test_all.db")
-        self.run_check(filepath, 3, 0, 10)
+        self.run_check(filepath, 3, 0, 7)
 
     def run_check(self, filepath, expected_errors, expected_warnings, expected_pv_errors):
         dbc = DbChecker(filepath, False)
