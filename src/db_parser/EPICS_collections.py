@@ -12,6 +12,9 @@ class Db:
         self.directory = directory
         self.records = records
 
+    def __len__(self):
+        return len(self.records)
+
     def __str__(self):
         return str(self.directory)
 
@@ -122,3 +125,6 @@ class Field:
 
     def __str__(self):
         return str(self.name) + ":" + str(self.value)
+
+    def unpack(self):
+        return self.name, self.value
