@@ -6,7 +6,6 @@ from src.db_parser.common import DbSyntaxError
 from src.db_parser.lexer import Token
 from src.db_parser.parser import Parser
 from src.db_parser.tokens import TokenTypes
-from src.db_parser.EPICS_collections import Field
 
 
 class MockLexer(six.Iterator):
