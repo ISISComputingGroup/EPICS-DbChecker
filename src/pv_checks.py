@@ -42,10 +42,11 @@ def is_standalone_unit(unit):
 
 
 def is_prefixed_unit(unit):
-    return any(len(unit) > len(base_unit) and
-               unit[-len(base_unit):] == base_unit and
-               unit[:-len(base_unit)] in allowed_unit_prefixes
-               for base_unit in allowed_prefixable_units)
+    unit_checklist = [len(unit) > len(base_unit) and
+                      unit[-len(base_unit):] == base_unit and
+                      unit[:-len(base_unit)] in allowed_unit_prefixes
+                      for base_unit in allowed_prefixable_units]
+    return any(unit_checklist)
 
 
 def allowed_unit(raw_unit):
@@ -183,7 +184,9 @@ def get_units_valid(db):
     for rec in db.records:
         unit = rec.get_field("EGU")
 
-        if unit is not None and unit != "" and not allowed_unit(unit):
+        if unit is None or unit == "" or allowed_unit(unit):
+            continue
+        else:
             failures.append("Invalid unit '{}' on {}".format(unit, rec))
 
     return failures
