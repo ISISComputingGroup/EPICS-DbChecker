@@ -19,10 +19,10 @@ class Grouper:
     def __init__(self):
         pass
 
-    def group_records(self, records, debug=False):
+    def group_records(self, record_dict, debug=False):
         # Get the record keys as a list because by
         # sorting it we can identify stems easily
-        names = sorted(records.keys())
+        names = sorted(record_dict.keys())
         record_groups = {}
 
         # Find potential stems
@@ -53,7 +53,7 @@ class Grouper:
         # Now find the related names
         for name in names:
             # get all aliases
-            for alias in records[name].aliases:
+            for alias in record_dict[name].aliases:
                 ma1 = re.search(
                     "^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)$",
                     alias

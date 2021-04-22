@@ -36,6 +36,18 @@ allowed_standalone_units = {
 }
 
 
+def is_standalone_unit(unit):
+    return unit in allowed_non_prefixable_units or \
+           unit in allowed_prefixable_units
+
+
+def is_prefixed_unit(unit):
+    return any(len(unit) > len(base_unit) and
+               unit[-len(base_unit):] == base_unit and
+               unit[:-len(base_unit)] in allowed_unit_prefixes
+               for base_unit in allowed_prefixable_units)
+
+
 def allowed_unit(raw_unit):
     """
     This method checks that the given unit conforms to standard
@@ -64,17 +76,6 @@ def allowed_unit(raw_unit):
                 units_with_powers = [base]
 
     units = filter(None, units_with_powers)
-
-    def is_standalone_unit(unit):
-        return unit in allowed_non_prefixable_units or \
-               unit in allowed_prefixable_units
-
-    def is_prefixed_unit(unit):
-        return any(len(unit) > len(base_unit) and
-                   unit[-len(base_unit):] == base_unit and
-                   unit[:-len(base_unit)] in allowed_unit_prefixes
-                   for base_unit in allowed_prefixable_units)
-
     return all(is_standalone_unit(u) or is_prefixed_unit(u) for u in units)
 
 

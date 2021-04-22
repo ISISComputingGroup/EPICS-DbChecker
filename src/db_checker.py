@@ -67,12 +67,12 @@ class DbChecker:
         records_dict = {name: record for name, record in zip(record_names, self.parsed_db.records)}
         groups = grouper.group_records(records_dict)
         if self.debug:
-            for s in groups.keys():
-                print(s, groups[s].RB, groups[s].SP, groups[s].SP_RBV)
-        for s in groups.keys():
-            self.check_case(groups[s])
-            self.check_chars(groups[s])
-            self.check_candidates(groups[s], aliases)
+            for group_name in groups.keys():
+                print(group_name, groups[group_name].RB, groups[group_name].SP, groups[group_name].SP_RBV)
+        for group_name in groups.keys():
+            self.check_case(groups[group_name])
+            self.check_chars(groups[group_name])
+            self.check_candidates(groups[group_name], aliases)
 
         for w in self.warnings:
             print(w)
