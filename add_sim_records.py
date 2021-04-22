@@ -78,7 +78,6 @@ def generate_record_text(record, rb, sp, sp_rbv):
     elif sp != '':
         sp = get_sim_name(sp)
         string_builder += generate_single_record(record, sp)
-            
         if sp_rbv != '':
             sp_rbv = get_sim_name(sp_rbv)
             string_builder += 'alias("' + sp + '","' + sp_rbv + '")' + '\n\n'

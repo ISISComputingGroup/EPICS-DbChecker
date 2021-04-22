@@ -23,7 +23,6 @@ class Grouper:
         # Get the record keys as a list because by
         # sorting it we can identify stems easily
         names = sorted(records.keys())
-
         record_groups = {}
 
         # Find potential stems
@@ -38,7 +37,6 @@ class Grouper:
                 if not (name in record_groups.keys()):
                     record_groups[name] = RecordGroup(name, name)
                     record_groups[name].RB = name
-                    continue
             else:
                 # Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
                 if ma1 is not None:
@@ -46,20 +44,31 @@ class Grouper:
                     if not (s in record_groups.keys()):
                         record_groups[s] = RecordGroup(s, name)
                         record_groups[s].SP_RBV = name
-                        continue
                 elif ma2 is not None:
                     s = ma2.groups()[0]
                     if not (s in record_groups.keys()):
                         record_groups[s] = RecordGroup(s, name)
                         record_groups[s].SP = name
 
-                        # Not sure this is the best approach here, but it does appear to pass tests.
-                        if records[name].aliases:
-                            record_groups[s].RB = records[name].aliases[0]
-                        continue
-
         # Now find the related names
         for name in names:
+            # get all aliases
+            for alias in records[name].aliases:
+                ma1 = re.search(
+                    "^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)$",
+                    alias
+                )
+                ma2 = re.search(
+                    "^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$",
+                    alias
+                )
+                if ma1 is not None:
+                    record_groups[name].SP = alias
+                elif ma2 is not None:
+                    record_groups[name].SP_RBV = alias
+                else:
+                    record_groups[alias].RB = alias
+
             for s in record_groups.keys():
                 # Don't read the first name
                 if name == record_groups[s].main:
@@ -82,11 +91,10 @@ class Grouper:
                     record_groups[s].RB = name
 
         if debug:
-            print("GROUPS:")
             for s in record_groups.keys():
-                print(
-                        s + record_groups[s].RB + record_groups[s].SP +
-                        record_groups[s].SP_RBV
+                print("s:{}, RB:{}, SP:{}, SP_RBV:{}".format(
+                    s, record_groups[s].RB, record_groups[s].SP,
+                    record_groups[s].SP_RBV)
                 )
         return record_groups
 
