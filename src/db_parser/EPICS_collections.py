@@ -113,6 +113,37 @@ class Record:
                 return True
         return False
 
+    def get_siml(self):
+        for field in self.fields:
+            if field.name == "SIML":
+                return field.value
+        return None
+
+    def get_sdis(self):
+        for field in self.fields:
+            if field.name == "SDIS":
+                return field.value
+        return None
+
+    def get_dtyp(self):
+        for field in self.fields:
+            if field.name == "DTYP":
+                return field.value
+        return None
+
+    def get_nelm(self):
+        for field in self.fields:
+            if field.name == "NELM":
+                return field.value
+        return None
+
+    def get_ftvl(self):
+        for field in self.fields:
+            if field.name == "FTVL":
+                return field.value
+        return None
+
+
 
 class Field:
     """

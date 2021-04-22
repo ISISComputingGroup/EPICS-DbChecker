@@ -57,7 +57,7 @@ def generate_single_record(original_record, name):
         
         """.format(
             original_record.type, name, add_waveform_specfic(
-                original_record.nelm, original_record.ftvl
+                original_record.get_nelm(), original_record.get_ftvl()
             )
         ))
 
@@ -90,11 +90,11 @@ def generate_record_text(record, rb, sp, sp_rbv):
     return string_builder
 
 
-def find_common_macro(records):
+def find_common_macro(db):
     # Find the most common macro name and whether it is followed by a colon
     macros = {}
-    for r in records:
-        m, pv = find_macro(records[r].name)
+    for r in db.records:
+        m, pv = find_macro(r.pv)
         if m in macros.keys():
             macros[m][0] += 1
         else:
@@ -127,8 +127,8 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
             continue
             
         # Skip adding sim record if the original is a soft record
-        if records[groups[g].main].dtyp is None or \
-                records[groups[g].main].dtyp.lower() == "soft channel":
+        if records[groups[g].main].get_dtyp() is None or \
+                records[groups[g].main].get_dtyp().lower() == "soft channel":
             continue
 
         # No point simulating SIM or DISABLE
@@ -145,14 +145,16 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
     return output
 
 
-def generate_modifed_db(file_in_path, records, file_out_path="generated.db", insert_sims=True, insert_disable=True):
-    if records is None:
-        records = {}
+def generate_modifed_db(file_in_path, db, file_out_path="generated.db", insert_sims=True, insert_disable=True):
+    if db.records is None:
+        db.records = []
+    record_names = [record.pv for record in db.records]
+    records_dict = {name: record for name, record in zip(record_names, db.records)}
     record_start_regex = r'record\((\w+),\s*"([\w_\-\:\[\]<>;$\(\)]+)"\)'
 
     with open(file_in_path, 'r') as in_file, \
             open(file_out_path, 'w') as out_file:
-        prefix, colon = find_common_macro(records)
+        prefix, colon = find_common_macro(db)
         if colon:
             prefix += ':'
         print("COMMON PREFIX = " + prefix)
@@ -160,7 +162,7 @@ def generate_modifed_db(file_in_path, records, file_out_path="generated.db", ins
         sim_record_name = prefix + "SIM"
         dis_record_name = prefix + "DISABLE"
 
-        if insert_sims and not sim_record_name in records:
+        if insert_sims and not sim_record_name in records_dict:
             out_file.write('record(bo, "' + sim_record_name + '")\n')
             out_file.write('{\n')
             out_file.write('    field(SCAN, "Passive")\n')
@@ -170,7 +172,7 @@ def generate_modifed_db(file_in_path, records, file_out_path="generated.db", ins
             out_file.write('    field(VAL, "$(RECSIM=0)")\n')
             out_file.write('}\n\n')
 
-        if insert_disable and not dis_record_name in records:
+        if insert_disable and not dis_record_name in records_dict:
             out_file.write('record(bo, "' + dis_record_name + '") \n')
             out_file.write('{\n')
             out_file.write('    field(DESC, "Disable comms")\n')
@@ -186,7 +188,7 @@ def generate_modifed_db(file_in_path, records, file_out_path="generated.db", ins
             matched_pv = re.match(record_start_regex, line)
             if matched_pv is not None:
                 # Found start of record
-                curr_record = records[matched_pv.groups()[1]]
+                curr_record = records_dict[matched_pv.groups()[1]]
 
             elif curr_record is not None:
                 if re.match("}$", line.strip()) is not None:
@@ -195,15 +197,15 @@ def generate_modifed_db(file_in_path, records, file_out_path="generated.db", ins
                     # Only add SIM and SDIS to allowed records which has
                     # a record type which is not soft channel
                     if curr_record.type in ALLOWED_SIM_TYPES and \
-                            curr_record.dtyp is not None and \
-                            curr_record.dtyp.lower() != "soft channel":
-                        if insert_sims and curr_record.siml is None:
-                            name = get_sim_name(curr_record.name)
+                            curr_record.get_dtyp() is not None and \
+                            curr_record.get_dtyp().lower() != "soft channel":
+                        if insert_sims and curr_record.get_siml() is None:
+                            name = get_sim_name(curr_record.pv)
                             out_file.write(
                                 '    field(SIML, "' + sim_record_name + '")\n'
                             )
                             out_file.write('    field(SIOL, "' + name + '")\n')
-                        if insert_disable and curr_record.sdis is None:
+                        if insert_disable and curr_record.get_sdis() is None:
                             out_file.write(
                                 '    field(SDIS, "' + dis_record_name + '")\n'
                             )
@@ -211,7 +213,7 @@ def generate_modifed_db(file_in_path, records, file_out_path="generated.db", ins
 
         if insert_sims:
             new_records = generate_sim_records(
-                records, sim_record_name, dis_record_name
+                records_dict, sim_record_name, dis_record_name
             )
 
             # If no new records, don't write anything
@@ -231,13 +233,14 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     
-    file = args.file[0]  
-    
+    filename = args.file[0]
+    file = open(filename)
     if len(args.output) == 1:
         out = args.output[0]
     else:
-        f = os.path.split(file)
+        f = os.path.split(filename)
         out = "sim_" + f[-1] 
     
-    db_records = Parser(Lexer(file)).db()
-    generate_modifed_db(file, db_records, out)
+    db_records = Parser(Lexer(file.read())).db()
+    file.close()
+    generate_modifed_db(filename, db_records, out)
