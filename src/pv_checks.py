@@ -36,12 +36,25 @@ allowed_standalone_units = {
 }
 
 
-def is_standalone_unit(unit):
-    return unit in allowed_non_prefixable_units or \
-           unit in allowed_prefixable_units
+def process_units(processed_unit):
+    # remove 1\ as this is ok as a unit as in 1\m but 1 on its own is not ok
+    processed_unit = re.sub(r'1/', '', processed_unit).replace(" ", "")
+    # split unit amalgamations and remove powers
+    units_with_powers = re.split(r'[/ ()]', processed_unit)
+    return units_with_powers
+
+
+def expand_macro(raw_unit):
+    # expand macro $(A) to a valid unit, expand $(A=B) to B
+    processed_unit = re.sub(r'\$[({].*?=(.*)?[})]', r'\1', raw_unit)
+    processed_unit = re.sub(r'\$[({].*?[})]', 'm', processed_unit)
+    return processed_unit
 
 
 def is_prefixed_unit(unit):
+    """
+    This method checks if a given unit has a prefix
+    """
     unit_checklist = [len(unit) > len(base_unit) and
                       unit[-len(base_unit):] == base_unit and
                       unit[:-len(base_unit)] in allowed_unit_prefixes
@@ -56,15 +69,8 @@ def allowed_unit(raw_unit):
     if raw_unit in allowed_standalone_units:
         return True
 
-    # expand macro $(A) to a valid unit, expand $(A=B) to B
-    processed_unit = re.sub(r'\$[({].*?=(.*)?[})]', r'\1', raw_unit)
-    processed_unit = re.sub(r'\$[({].*?[})]', 'm', processed_unit)
-
-    # remove 1\ as this is ok as a unit as in 1\m but 1 on its own is not ok
-    processed_unit = re.sub(r'1/', '', processed_unit).replace(" ", "")
-
-    # split unit amalgamations and remove powers
-    units_with_powers = re.split(r'[/ ()]', processed_unit)
+    processed_unit = expand_macro(raw_unit)
+    units_with_powers = process_units(processed_unit)
 
     # allow power but not negative power so m^-1.
     # Reason is there is no latex so 1/m is much clearer here
@@ -77,7 +83,9 @@ def allowed_unit(raw_unit):
                 units_with_powers = [base]
 
     units = filter(None, units_with_powers)
-    return all(is_standalone_unit(u) or is_prefixed_unit(u) for u in units)
+    return all(u in allowed_non_prefixable_units or
+               u in allowed_prefixable_units or
+               is_prefixed_unit(u) for u in units)
 
 
 def build_failure_message(basemessage, submessages):
@@ -231,16 +239,16 @@ def get_log_info_tags(db):
                 else:
                     log_fields[info_name] = (db, rec)
 
-            if info_name == "log_period_seconds" or \
-                    info_name == "log_period_pv":
-                if logging_period is None:
-                    logging_period = (db, rec)
-                else:
-                    failures.append(
-                        "Invalid logging config: "
-                        "{source} alters the logging period "
-                        "type".format(source=rec, tag=info_name)
-                    )
+                if info_name == "log_period_seconds" or \
+                        info_name == "log_period_pv":
+                    if logging_period is None:
+                        logging_period = (db, rec)
+                    else:
+                        failures.append(
+                            "Invalid logging config: "
+                            "{source} alters the logging period "
+                            "type".format(source=rec, tag=info_name)
+                        )
 
     return failures
 
