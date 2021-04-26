@@ -228,29 +228,37 @@ def get_log_info_tags(db):
     for rec in db.records:
         for info in rec.infos:
             info_name = info.name.lower().strip('"')
+            info_value = info.value
             if info_name.startswith("log"):
-                previous_source = log_fields.get(info_name, None)
-                if previous_source is not None:
-                    failures.append(
-                        "Invalid logging config: "
-                        "{source} repeats the log info tag "
-                        "{tag}".format(source=rec, tag=info_name)
-                    )
-                else:
-                    log_fields[info_name] = (db, rec)
-
-                if info_name == "log_period_seconds" or \
-                        info_name == "log_period_pv":
-                    if logging_period is None:
-                        logging_period = (db, rec)
-                    else:
-                        failures.append(
-                            "Invalid logging config: "
-                            "{source} alters the logging period "
-                            "type".format(source=rec, tag=info_name)
-                        )
-
+                check_repeated_log(failures, info_name, info_value, log_fields, rec)
+                logging_period = check_changed_period(failures, info_name, info_value, logging_period, rec)
     return failures
+
+
+def check_changed_period(failures, info_name, info_value, logging_period, rec):
+    if info_name == "log_period_seconds" or \
+            info_name == "log_period_pv":
+        if logging_period is None:
+            return info_value
+        else:
+            failures.append(
+                "Invalid logging config: "
+                "{source} alters the logging period "
+                "type".format(source=rec, tag=info_name)
+            )
+    return logging_period
+
+
+def check_repeated_log(failures, info_name, info_value, log_fields, rec):
+    previous_source = log_fields.get(info_name, None)
+    if previous_source is not None:
+        failures.append(
+            "Invalid logging config: "
+            "{source} repeats the log info tag "
+            "{tag}".format(source=rec, tag=info_name)
+        )
+    else:
+        log_fields[info_name] = info_value
 
 
 # List of Errors to check for.
