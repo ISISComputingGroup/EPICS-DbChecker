@@ -49,6 +49,7 @@ class TestWithDBExamples(unittest.TestCase):
 
     def run_syntax_check(self, filepath, expected_warnings, expected_errors):
         dbc = DbChecker(filepath, False)
+        dbc.parse_db_file()
         warnings, errors = dbc.syntax_check()
         # Check that the correct number of errors and warnings were found.
         self.assertEqual(errors, expected_errors)
@@ -56,6 +57,7 @@ class TestWithDBExamples(unittest.TestCase):
 
     def run_pv_check(self, filepath, expected_warnings, expected_errors):
         dbc = DbChecker(filepath, False)
+        dbc.parse_db_file()
         warnings, errors = dbc.pv_check()
         # Check that the correct number of errors and warnings were found.
         self.assertEqual(errors, expected_errors)

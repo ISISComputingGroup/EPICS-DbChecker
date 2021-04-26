@@ -9,6 +9,7 @@ def check_files(db_files, verbose):
         try:
             fp = os.path.abspath(f)
             dbc = DbChecker(fp, verbose)
+            dbc.parsed_db_file()
             dbc.syntax_check()
             dbc.pv_check()
         except IOError:

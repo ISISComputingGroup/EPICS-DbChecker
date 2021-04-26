@@ -22,13 +22,29 @@ from src.pv_checks import run_pv_checks
 #        e.g. DUMMYPV_SP_RB
 
 
+def remove_macro(pvname, remove_colon=True):
+    if pvname.find('$') != -1:
+        left = pvname.rfind(')') + 1
+        pvname = pvname[left:]
+        # Remove leading : if there is one
+        if remove_colon and pvname.startswith(':'):
+            pvname = pvname[1:]
+    return pvname
+
+
 class DbChecker:
     def __init__(self, filename, debug=False):
         self.filename = filename
-        self.file = open(filename)
         self.errors = []
         self.warnings = []
         self.debug = debug
+        self.file = None
+        self.parsed_db = None
+        self.records_dict = {}
+
+    # handles this separately so we can set a parsed_db manually for unit tests.
+    def parse_db_file(self):
+        self.file = open(self.filename)
         self.parsed_db = Parser(Lexer(self.file.read())).db()
         self.file.close()
 
@@ -43,36 +59,17 @@ class DbChecker:
         print("\n** CHECKING {}'s Syntax **".format(self.filename))
         grouper = Grouper()
         # Check for consistency in whether PV macros are followed by colons
-        colon = None
-        for r in self.parsed_db.records:
-            if colon is None:
-                n = self.remove_macro(r.pv, False)
-                colon = n.startswith(':')
-            else:
-                n = self.remove_macro(r.pv, False)
-                if n.startswith(':') != colon:
-                    if colon:
-                        self.errors.append(
-                            "FORMAT ERROR: " + r.pv +
-                            " should have a colon after the macro"
-                        )
-                    else:
-                        self.errors.append(
-                            "FORMAT ERROR: " + r.pv +
-                            " should not have a colon after the macro"
-                        )
-        # Get list of all aliases and flatten it down.
-        aliases = [alias for list in [record.aliases for record in self.parsed_db.records] for alias in list]
+        self.check_macro_syntax()
         record_names = [record.pv for record in self.parsed_db.records]
-        records_dict = {name: record for name, record in zip(record_names, self.parsed_db.records)}
-        groups = grouper.group_records(records_dict)
+        self.records_dict = {name: record for name, record in zip(record_names, self.parsed_db.records)}
+        groups = grouper.group_records(self.records_dict)
         if self.debug:
             for group_name in groups.keys():
                 print(group_name, groups[group_name].RB, groups[group_name].SP, groups[group_name].SP_RBV)
         for group_name in groups.keys():
-            self.check_case(groups[group_name])
-            self.check_chars(groups[group_name])
-            self.check_candidates(groups[group_name], aliases)
+            [self.check_case(name) for name in groups[group_name].get_all()]
+            [self.check_chars(name) for name in groups[group_name].get_all()]
+            self.check_candidates(groups[group_name])
 
         for w in self.warnings:
             print(w)
@@ -85,48 +82,49 @@ class DbChecker:
 
         return len(self.warnings), len(self.errors)
 
-    def remove_macro(self, pvname, remove_colon=True):
-        if pvname.find('$') != -1:
-            left = pvname.rfind(')') + 1
-            pvname = pvname[left:]
-            # Remove leading : if there is one
-            if remove_colon and pvname.startswith(':'):
-                pvname = pvname[1:]
-        return pvname
+    def check_macro_syntax(self):
+        colon = None
+        for r in self.parsed_db.records:
+            if colon is None:
+                n = remove_macro(r.pv, False)
+                colon = n.startswith(':')
+            else:
+                n = remove_macro(r.pv, False)
+                if n.startswith(':') != colon:
+                    if colon:
+                        self.errors.append(
+                            "FORMAT ERROR: " + r.pv +
+                            " should have a colon after the macro"
+                        )
+                    else:
+                        self.errors.append(
+                            "FORMAT ERROR: " + r.pv +
+                            " should not have a colon after the macro"
+                        )
 
-    def check_case(self, group):
-        def check(name):
-            se = re.search('[a-z]', name)
-            if not se is None:
-                self.errors.append(
-                    "CASING ERROR: " + name + " should be upper-case"
-                )
+    def check_case(self, name):
+        se = re.search('[a-z]', name)
+        if se is not None:
+            self.errors.append(
+                "CASING ERROR: " + name + " should be upper-case"
+            )
 
-        check(group.RB)
-        check(group.SP)
-        check(group.SP_RBV)
+    def check_chars(self, name):
+        name = remove_macro(name)
+        # Only contains a-z A-Z 0-9 _ :
+        se = re.search(r'[^\w:]', name)
+        if se is not None:
+            self.errors.append(
+                "CHARACTER ERROR: " + name + " contains illegal characters"
+            )
 
-    def check_chars(self, group):
-        def check(name):
-            name = self.remove_macro(name)
-            # Only contains a-z A-Z 0-9 _ :
-            se = re.search(r'[^\w_:]', name)
-            if se is not None:
-                self.errors.append(
-                    "CHARACTER ERROR: " + name + " contains illegal characters"
-                )
-
-        check(group.RB)
-        check(group.SP)
-        check(group.SP_RBV)
-
-    def check_candidates(self, group, aliases):
+    def check_candidates(self, group):
         ma1 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", group.main)
         ma2 = re.match(
             r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$",
             group.main
         )
-        # print group.main, group.RB, group.SP, group.SP_RBV
+        print (group.main, group.RB, group.SP, group.SP_RBV)
         if ma1 is not None:
             # It is a SP, so it should have a readback alias (rule 6)
             if group.RB == '':
@@ -134,9 +132,9 @@ class DbChecker:
                     "FORMAT ERROR: " + group.SP +
                     " does not have a correctly named readback alias"
                 )
-                print(group.SP)
-            elif group.RB != '' and group.RB in aliases:
+            elif group.RB != '' and group.RB in self.records_dict[group.main].aliases:
                 # This is okay
+                print(self.parsed_db)
                 return
             else:
                 self.errors.append(

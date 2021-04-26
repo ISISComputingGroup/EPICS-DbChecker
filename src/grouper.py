@@ -11,6 +11,9 @@ class RecordGroup:
         self.SP = ""
         self.SP_RBV = ""
 
+    def get_all(self):
+        return [self.RB, self.SP, self.SP_RBV]
+
 
 class Grouper:
     """A class for grouping related PVs together.
