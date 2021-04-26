@@ -17,86 +17,85 @@ class Grouper:
     A typical group would be PVNAME, PVNAME:SP, PVNAME:SP:RBV"""
 
     def __init__(self):
-        pass
+        self.record_groups = {}
 
     def group_records(self, record_dict, debug=False):
         # Get the record keys as a list because by
         # sorting it we can identify stems easily
         names = sorted(record_dict.keys())
-        record_groups = {}
 
         # Find potential stems
         for name in names:
-            # Stems are pure records, not aliases
-            ma1 = re.match(
-                r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
-            )
-            ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
-            if ma1 is None and ma2 is None:
-                # Something like DUMMYPV would get here
-                if not (name in record_groups.keys()):
-                    record_groups[name] = RecordGroup(name, name)
-                    record_groups[name].RB = name
-            else:
-                # Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
-                if ma1 is not None:
-                    s = ma1.groups()[0]
-                    if not (s in record_groups.keys()):
-                        record_groups[s] = RecordGroup(s, name)
-                        record_groups[s].SP_RBV = name
-                elif ma2 is not None:
-                    s = ma2.groups()[0]
-                    if not (s in record_groups.keys()):
-                        record_groups[s] = RecordGroup(s, name)
-                        record_groups[s].SP = name
+            self.find_record_type(name)
 
         # Now find the related names
         for name in names:
             # get all aliases
             for alias in record_dict[name].aliases:
-                ma1 = re.search(
-                    "^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)$",
-                    alias
-                )
-                ma2 = re.search(
-                    "^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$",
-                    alias
-                )
+                ma1, ma2 = find_related_type(alias, name)
+                # put alias in correct type, since its an alias for this record, must be at least one
                 if ma1 is not None:
-                    record_groups[name].SP = alias
+                    self.record_groups[name].SP = alias
                 elif ma2 is not None:
-                    record_groups[name].SP_RBV = alias
+                    self.record_groups[name].SP_RBV = alias
                 else:
-                    record_groups[alias].RB = alias
+                    self.record_groups[name.split(":")[0]].RB = alias
 
-            for s in record_groups.keys():
+            for s in self.record_groups.keys():
                 # Don't read the first name
-                if name == record_groups[s].main:
+                if name == self.record_groups[s].main:
                     continue
 
-                ma1 = re.search(
-                    "^" + re.escape(s) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)$",
-                    name
-                )
-                ma2 = re.search(
-                    "^" + re.escape(s) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$",
-                    name
-                )
+                ma1, ma2 = find_related_type(name, s)
 
+                # put record in matching type if it matches any
                 if ma1 is not None:
-                    record_groups[s].SP = name
+                    self.record_groups[s].SP = name
                 elif ma2 is not None:
-                    record_groups[s].SP_RBV = name
+                    self.record_groups[s].SP_RBV = name
                 elif s == name:
-                    record_groups[s].RB = name
+                    self.record_groups[s].RB = name
 
         if debug:
-            for s in record_groups.keys():
-                print("s:{}, RB:{}, SP:{}, SP_RBV:{}".format(
-                    s, record_groups[s].RB, record_groups[s].SP,
-                    record_groups[s].SP_RBV)
-                )
-        return record_groups
+            self.print_groups()
+        return self.record_groups
+
+    def find_record_type(self, name):
+        # Stems are pure records, not aliases
+        ma1 = re.match(
+            r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
+        )
+        ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
+        if ma1 is None and ma2 is None:
+            # Something like DUMMYPV would get here
+            if not (name in self.record_groups.keys()):
+                self.record_groups[name] = RecordGroup(name, name)
+                self.record_groups[name].RB = name
+        else:
+            # Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
+            if ma1 is not None:
+                s = ma1.groups()[0]
+                if not (s in self.record_groups.keys()):
+                    self.record_groups[s] = RecordGroup(s, name)
+                    self.record_groups[s].SP_RBV = name
+            else:
+                s = ma2.groups()[0]
+                if not (s in self.record_groups.keys()):
+                    self.record_groups[s] = RecordGroup(s, name)
+                    self.record_groups[s].SP = name
+
+    def print_groups(self):
+        for s in self.record_groups.keys():
+            print("s:{}, RB:{}, SP:{}, SP_RBV:{}".format(
+                s, self.record_groups[s].RB, self.record_groups[s].SP,
+                self.record_groups[s].SP_RBV)
+            )
+
+
+def find_related_type(search, name):
+    ma1 = re.match("^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)$", search)
+    ma2 = re.match("^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", search)
+    return ma1, ma2
 
 
 if __name__ == '__main__':
