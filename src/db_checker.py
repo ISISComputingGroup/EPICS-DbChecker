@@ -165,8 +165,8 @@ class DbChecker:
                 " is not correct, please see the rules"
             )
 
-    def check_sp_formatting(self, end, group, group1):
-        if not group1.endswith(end):
+    def check_sp_formatting(self, end, group, to_check):
+        if not to_check.endswith(end):
             self.errors.append(
                 "FORMAT ERROR: " + group.RB +
                 " does not have a correctly formatted " + end
