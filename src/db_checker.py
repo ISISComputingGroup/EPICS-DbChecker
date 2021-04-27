@@ -119,60 +119,55 @@ class DbChecker:
             )
 
     def check_candidates(self, group):
-        ma1 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", group.main)
-        ma2 = re.match(
-            r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$",
-            group.main
-        )
-        print (group.main, group.RB, group.SP, group.SP_RBV)
-        if ma1 is not None:
-            # It is a SP, so it should have a readback alias (rule 6)
-            if group.RB == '':
-                self.errors.append(
-                    "FORMAT ERROR: " + group.SP +
-                    " does not have a correctly named readback alias"
-                )
-            elif group.RB != '' and group.RB in self.records_dict[group.main].aliases:
-                # This is okay
-                print(self.parsed_db)
-                return
-            else:
-                self.errors.append(
-                    "UNSPECIFIED ERROR: " + group.SP +
-                    " is not correct, please see the rules"
-                )
-        elif ma2 is not None:
+        if group.main == group.SP:
+            self.sp_main_checks(group)
+        elif group.main == group.SP_RBV:
             self.errors.append(
                 "FORMAT ERROR: cannot have a SP:RBV "
                 "on its own ({})".format(group.SP)
             )
         else:
-            # Is a standard readback
-            if group.RB != '' and group.SP == '' and group.SP_RBV == '':
-                # This is okay as it represents a read-only value (rule 7)
-                return
-            else:
-                # Does it have SP:RBV but no SP - wrong
-                if group.SP == "" and group.SP_RBV != '':
-                    self.errors.append(
-                        "PARAMETER ERROR: " + group.RB + " does not have a :SP"
-                    )
-                    return
-                # If a group has a SP then it should have a SP:RBV (rule 5)
-                if group.SP != "" and group.SP_RBV == "":
-                    self.errors.append(
-                        "PARAMETER ERROR: " + group.RB +
-                        " has a :SP but not a :SP:RBV"
-                    )
+            self.check_readback(group)
 
-                # Finally check the format of the SP and SP:RBV (rule 4)
-                if group.SP != "" and not group.SP.endswith(':SP'):
-                    self.errors.append(
-                        "FORMAT ERROR: " + group.RB +
-                        " does not have a correctly formatted :SP"
-                    )
-                if group.SP_RBV != "" and not group.SP_RBV.endswith(':SP:RBV'):
-                    self.errors.append(
-                        "FORMAT ERROR: " + group.RB +
-                        " does not have a correctly formatted :SP:RBV"
-                    )
+    def check_readback(self, group):
+        # Is a standard readback
+        if group.SP_RBV != "":
+            if group.SP != "":
+                # Both SP and SP:RBV Present, just check there formatting
+                self.check_sp_formatting(":SP", group, group.SP)
+                self.check_sp_formatting(":SP:RBV", group, group.SP_RBV)
+            else:
+                # has SP:RBV but no SP - wrong
+                self.errors.append(
+                    "PARAMETER ERROR: " + group.RB +
+                    " has a :SP:RBV but not a :SP"
+                )
+        elif group.SP != "":
+            # has SP but not SP:RBV
+            self.errors.append(
+                "PARAMETER ERROR: " + group.RB +
+                " has a :SP but not a :SP:RBV"
+            )
+        # Has neither, read only
+        return
+
+    def sp_main_checks(self, group):
+        # It is a SP, so it should have a readback alias (rule 6)
+        if group.RB == '':
+            self.errors.append(
+                "FORMAT ERROR: " + group.SP +
+                " does not have a correctly named readback alias"
+            )
+        elif group.RB not in self.records_dict[group.main].aliases:
+            # SP is somehow main despite rb not being an alias?
+            self.errors.append(
+                "UNSPECIFIED ERROR: " + group.SP +
+                " is not correct, please see the rules"
+            )
+
+    def check_sp_formatting(self, end, group, group1):
+        if not group1.endswith(end):
+            self.errors.append(
+                "FORMAT ERROR: " + group.RB +
+                " does not have a correctly formatted " + end
+            )
