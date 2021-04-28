@@ -4,7 +4,7 @@ from src.db_parser.lexer import Lexer
 from src.db_parser.parser import Parser
 from src.grouper import Grouper
 from src.pv_checks import run_pv_checks
-
+from src.db_parser.common import DbSyntaxError
 
 # Rules implemented:
 # 1) Name should be uppercase
@@ -44,9 +44,15 @@ class DbChecker:
 
     # handles this separately so we can set a parsed_db manually for unit tests.
     def parse_db_file(self):
-        self.file = open(self.filename)
-        self.parsed_db = Parser(Lexer(self.file.read())).db()
-        self.file.close()
+        try:
+            self.file = open(self.filename)
+            self.parsed_db = Parser(Lexer(self.file.read())).db()
+
+        except Exception as e:
+            print("Error occured with file {}".format(self.filename))
+            raise e
+        finally:
+            self.file.close()
 
     def pv_check(self):
         print("\n** CHECKING {}'s PVs **".format(self.filename))

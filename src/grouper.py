@@ -37,12 +37,13 @@ class Grouper:
             for alias in record_dict[name].aliases:
                 ma1, ma2 = find_related_type(alias, name)
                 # put alias in correct type, since its an alias for this record, must be at least one
+                group_name = self.get_stem(name)
                 if ma1 is not None:
-                    self.record_groups[name].SP = alias
+                    self.record_groups[group_name].SP = alias
                 elif ma2 is not None:
-                    self.record_groups[name].SP_RBV = alias
+                    self.record_groups[group_name].SP_RBV = alias
                 else:
-                    self.record_groups[name.split(":")[0]].RB = alias
+                    self.record_groups[group_name].RB = alias
 
             for s in self.record_groups.keys():
                 # Don't read the first name
@@ -62,6 +63,18 @@ class Grouper:
         if debug:
             self.print_groups()
         return self.record_groups
+
+    def get_stem(self, name):
+        ma1 = re.match(
+            r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
+        )
+        ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
+        group_name = name
+        if ma1 is not None:
+            group_name = ma1.groups()[0]
+        elif ma2 is not None:
+            group_name = ma2.groups()[0]
+        return group_name
 
     def find_record_type(self, name):
         # Stems are pure records, not aliases

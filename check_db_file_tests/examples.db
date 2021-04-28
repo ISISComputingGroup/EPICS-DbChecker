@@ -6,7 +6,7 @@ record(ai, "$(P)READONLY")
 
 #Underscore used instead of colon
 #NOT ALLOWED - 1 error
-record(ai, "$(P)TEMP") 
+record(ai, $(P)TEMP) 
 {
 }
 record(ai, "$(P)TEMP:SP") 
