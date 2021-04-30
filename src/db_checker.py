@@ -111,7 +111,7 @@ class DbChecker:
     def check_case(self, name):
         se = re.search('[a-z]', name)
         if se is not None:
-            self.errors.append(
+            self.warnings.append(
                 "CASING ERROR: " + name + " should be upper-case"
             )
 
