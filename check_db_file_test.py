@@ -9,11 +9,11 @@ class TestWithDBExamples(unittest.TestCase):
 
     def test_syntax_examples(self):
         filepath = join(self.test_folder, "examples.db")
-        self.run_syntax_check(filepath, 0, 15)
+        self.run_syntax_check(filepath, 1, 14)
 
     def test_syntax_agilent(self):
         filepath = join(self.test_folder, "Agilent_33220A.db")
-        self.run_syntax_check(filepath, 0, 24)
+        self.run_syntax_check(filepath, 24, 0)
 
     def test_syntax_fl300(self):
         filepath = join(self.test_folder, "FL300.db")
@@ -52,6 +52,7 @@ class TestWithDBExamples(unittest.TestCase):
         dbc.parse_db_file()
         warnings, errors = dbc.syntax_check()
         # Check that the correct number of errors and warnings were found.
+        print(errors)
         self.assertEqual(errors, expected_errors)
         self.assertEqual(warnings, expected_warnings)
 
