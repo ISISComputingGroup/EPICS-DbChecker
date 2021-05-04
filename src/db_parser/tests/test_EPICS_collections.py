@@ -72,15 +72,15 @@ class TestRecords(unittest.TestCase):
 
     def test_get_field_success(self):
         test_record = ec.Record("test", "TEST:1", [], self.field_list, [])
-        self.assertEqual(test_record.get_field(self.name_list[0]), self.value_list[0])
+        self.assertEqual(test_record.get_field_value(self.name_list[0]), self.value_list[0])
 
     def test_get_field_fail(self):
         test_record = ec.Record("test", "TEST:1", [], self.field_list, [])
-        self.assertIsNone(test_record.get_field("fake_field"))
+        self.assertIsNone(test_record.get_field_value("fake_field"))
 
     def test_get_field_empty(self):
         test_record = ec.Record("test", "TEST:1", [], [], [])
-        self.assertIsNone(test_record.get_field(self.name_list[0]))
+        self.assertIsNone(test_record.get_field_value(self.name_list[0]))
 
     def test_get_info_success(self):
         test_record = ec.Record("test", "TEST:1", self.field_list, [], [])

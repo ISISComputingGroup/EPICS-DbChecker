@@ -49,7 +49,7 @@ class Lexer(six.Iterator):
     """
     Tokens to ignore. These are never returned from __next__
     """
-    IGNORED_TOKENS = [TokenTypes.WHITESPACE, TokenTypes.COMMENT, TokenTypes.MACRO]
+    IGNORED_TOKENS = [TokenTypes.WHITESPACE, TokenTypes.COMMENT]
 
     """
     This provides a mapping between regexes and lexer tokens.
@@ -91,6 +91,7 @@ class Lexer(six.Iterator):
             TokenTypes.LITERAL),
     ])
 
+    # Change to keep track of macro
     def __init__(self, file_contents):
         self.file_contents = file_contents
         self.gen = None

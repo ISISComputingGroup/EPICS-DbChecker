@@ -47,12 +47,10 @@ class DbChecker:
         try:
             self.file = open(self.filename)
             self.parsed_db = Parser(Lexer(self.file.read())).db()
-
+            self.file.close()
         except Exception as e:
             print("Error occured with file {}".format(self.filename))
             raise e
-        finally:
-            self.file.close()
 
     def pv_check(self):
         print("\n** CHECKING {}'s PVs **".format(self.filename))

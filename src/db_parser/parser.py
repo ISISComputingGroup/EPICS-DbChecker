@@ -82,6 +82,8 @@ class Parser(object):
         Returns:
             The value with quotes stripped (if applicable)
         """
+        if self.current_token.type == TokenTypes.MACRO:
+            self.consume(TokenTypes.MACRO)
         if self.current_token.type == TokenTypes.QUOTED_STRING:
             return self.consume(TokenTypes.QUOTED_STRING)[1:-1]  # Strip quotes
         elif self.current_token.type == TokenTypes.LITERAL:
@@ -104,7 +106,7 @@ class Parser(object):
             value = self.value()
         return key, value
 
-    def field(self):
+    def field(self, has_macro=False):
         """
         Handler for an EPICS DB field.
         Examples:
@@ -114,7 +116,7 @@ class Parser(object):
         """
         self.consume(TokenTypes.FIELD)
         # return self.key_value_pair()
-        return Field(*self.key_value_pair())
+        return Field(*self.key_value_pair(), has_macro=has_macro)
 
     def info(self):
         """
@@ -161,7 +163,8 @@ class Parser(object):
         fields = []
         infos = []
         aliases = []
-
+        field_with_macro = []
+        line_has_macro = False
         self.consume(TokenTypes.RECORD)
         record_type, record_name = self.key_value_pair()
 
@@ -172,11 +175,17 @@ class Parser(object):
         with self.brace_delimited_block():
             while self.current_token.type != TokenTypes.R_BRACE:
                 if self.current_token.type == TokenTypes.FIELD:
-                    fields.append(self.field())
+                    fields.append(self.field(line_has_macro))
+                    line_has_macro = False
                 elif self.current_token.type == TokenTypes.INFO:
                     infos.append(self.info())
+                    line_has_macro = False
                 elif self.current_token.type == TokenTypes.ALIAS:
                     aliases.append(self.alias_field())
+                    line_has_macro = False
+                elif self.current_token.type == TokenTypes.MACRO:
+                    line_has_macro = True
+                    self.consume(TokenTypes.MACRO)
                 else:
                     self.raise_error("Expected info, field or alias")
 
@@ -212,6 +221,8 @@ class Parser(object):
                     if pv == rec.pv or pv in rec.aliases:
                         rec.aliases.append(alias)
                         break
+            elif self.current_token.type == TokenTypes.MACRO:
+                self.consume(TokenTypes.MACRO)
             else:
                 self.raise_error("Expected record or alias")
         return records

@@ -130,8 +130,10 @@ def get_multiple_properties_on_pvs(db):
         fields = rec.get_field_names()
         if len(set(fields)) != len(fields):
             dupes = set([i for i in fields if fields.count(i) > 1])
-            failures.append("Multiple instances of fields {} on {}".
-                            format(','.join(dupes), rec))
+            dupe_vals = {rec.get_field(name).has_macro for name in dupes}
+            if not all(dupe_vals):
+                failures.append("Multiple instances of fields {} on {}".
+                                format(','.join(dupes), rec))
     return failures
 
 
@@ -144,7 +146,7 @@ def get_interest_units(db):
     for rec in db.records:
         if rec.is_interest() and not rec.is_disable() and \
                 (rec.get_type() in EGU_sub_list):
-            unit = rec.get_field("EGU")
+            unit = rec.get_field_value("EGU")
             if unit is None:
                 failures.append("Missing units on {}".format(rec))
     return failures
@@ -159,7 +161,7 @@ def get_interest_calc_readonly(db):
 
     for rec in db.records:
         if rec.is_interest() and (rec.get_type() in ASG_list):
-            value = rec.get_field("ASG")
+            value = rec.get_field_value("ASG")
             if value != "READONLY":
                 failures.append("Missing ASG on {}".format(rec))
     return failures
@@ -173,7 +175,7 @@ def get_desc_length(db):
     failures = []
 
     for rec in db.records:
-        desc = rec.get_field("DESC")
+        desc = rec.get_field_value("DESC")
         if desc is not None:
             # remove macros
             desc = re.sub(r'\$\([^)]*\)', '', desc)
@@ -190,7 +192,7 @@ def get_units_valid(db):
     failures = []
 
     for rec in db.records:
-        unit = rec.get_field("EGU")
+        unit = rec.get_field_value("EGU")
 
         if unit is None or unit == "" or allowed_unit(unit):
             continue

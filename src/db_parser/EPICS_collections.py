@@ -32,7 +32,6 @@ class Record:
         self.fields = fields
         self.infos = infos
         self.aliases = aliases
-
         # Test for whether the PV is a simulation
         if re.search(r'.SIM(:.|$)', pv) is not None:
             self.simulation = True
@@ -76,7 +75,7 @@ class Record:
                 return True
         return False
 
-    def get_field(self, search):
+    def get_field_value(self, search):
         """
         This method returns the values of the first field contained within
         the record that matches the search input
@@ -85,6 +84,17 @@ class Record:
         for field in self.fields:
             if field.name == search:
                 return field.value
+        return None
+
+    def get_field(self, search):
+        """
+        This method returns the values of the first field contained within
+        the record that matches the search input
+        If no field exists None is returned
+        """
+        for field in self.fields:
+            if field.name == search:
+                return field
         return None
 
     def get_type(self):
@@ -150,9 +160,10 @@ class Field:
     This class holds all the data about each field within a record,
     not using a dictionary as may not be unique
     """
-    def __init__(self, name, value):
+    def __init__(self, name, value,has_macro=False):
         self.name = name.strip()
         self.value = value
+        self.has_macro = has_macro
 
     def __str__(self):
         return str(self.name) + ":" + str(self.value)

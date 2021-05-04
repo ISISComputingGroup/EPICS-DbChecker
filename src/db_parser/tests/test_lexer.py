@@ -69,10 +69,11 @@ class LexerTests(unittest.TestCase):
 
         self.assertListEqual(tokens, expected_tokens)
 
-    def test_WHEN_lexer_lexes_a_macro_THEN_macro_is_ignored(self):
+    def test_WHEN_lexer_lexes_a_macro_THEN_returns_macro_token(self):
         tokens = get_tokens_list(Lexer("$(MACRO=VALUE)"))
 
         expected_tokens = [
+            token_from_type(TokenTypes.MACRO),
             token_from_type(TokenTypes.EOF)
         ]
 
