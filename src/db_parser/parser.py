@@ -163,11 +163,13 @@ class Parser(object):
         fields = []
         infos = []
         aliases = []
-        field_with_macro = []
         line_has_macro = False
         self.consume(TokenTypes.RECORD)
         record_type, record_name = self.key_value_pair()
 
+        # Handle Macro before opening brace
+        if self.current_token.type == TokenTypes.MACRO:
+            self.consume(TokenTypes.MACRO)
         # Special case for records with no body
         if self.current_token.type != TokenTypes.L_BRACE:
             # return {"type": record_type, "name": record_name, "fields": [], "infos": [], "aliases": []}
