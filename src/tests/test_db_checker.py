@@ -24,55 +24,55 @@ class TestDbChecker(unittest.TestCase):
         db = checker.DbChecker("")
         db.check_case("ALL CAPS")
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)
 
     def test_check_case_failure_some(self):
         db = checker.DbChecker("")
         db.check_case("MOSTLY Caps")
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.warnings), 1)
 
     def test_check_case_failure(self):
         db = checker.DbChecker("")
         db.check_case("no caps")
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.warnings), 1)
 
     def test_check_chars(self):
         db = checker.DbChecker("")
         db.check_chars("NO_CHARS1:")
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)
 
     def test_check_chars_numbers_only(self):
         db = checker.DbChecker("")
         db.check_chars("126582084")
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)
 
     def test_check_chars_alpha_only(self):
         db = checker.DbChecker("")
         db.check_chars("sdhvsnvopsiv")
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)
 
     def test_check_chars_punc_only(self):
         db = checker.DbChecker("")
         db.check_chars("::__:")
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)
 
     def test_check_chars_invalid_only(self):
         db = checker.DbChecker("")
         db.check_chars(r"  ///\\\"")
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_check_chars_invalid(self):
         db = checker.DbChecker("")
         db.check_chars("Contains invalid chars")
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
 
 # Separate class because needs these variables reset between tests
@@ -91,7 +91,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_candidates(self.test_group)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_check_candidates_fail_rbv_main(self):
         db = checker.DbChecker("")
@@ -101,7 +101,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_candidates(self.test_group)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_sp_main_checks_fail_sp_no_rb(self):
         db = checker.DbChecker("")
@@ -111,7 +111,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.sp_main_checks(self.test_group)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_sp_main_checks_fail_sp_main_rb_not_alias(self):
         db = checker.DbChecker("")
@@ -122,7 +122,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.sp_main_checks(self.test_group)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_sp_main_checks_success_sp_main_rb_alias(self):
         db = checker.DbChecker("")
@@ -134,7 +134,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.sp_main_checks(self.test_group)
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)
 
     def test_check_candidates_read_only(self):
         db = checker.DbChecker("")
@@ -143,7 +143,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_candidates(self.test_group)
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)
 
     def test_check_readback_read_only(self):
         db = checker.DbChecker("")
@@ -152,7 +152,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_readback(self.test_group)
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)
 
     def test_check_readback_has_sp_rbv(self):
         db = checker.DbChecker("")
@@ -163,7 +163,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_readback(self.test_group)
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)
 
     def test_check_readback_fail_rbv_no_sp(self):
         db = checker.DbChecker("")
@@ -173,7 +173,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_readback(self.test_group)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_check_readback_fail_sp_no_rbv(self):
         db = checker.DbChecker("")
@@ -183,7 +183,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_readback(self.test_group)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_check_readback_fail_sp_bad_format(self):
         db = checker.DbChecker("")
@@ -194,7 +194,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_readback(self.test_group)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_check_readback_fail_RBV_bad_format(self):
         db = checker.DbChecker("")
@@ -205,7 +205,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_readback(self.test_group)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_check_readback_fail_bad_format(self):
         db = checker.DbChecker("")
@@ -216,7 +216,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_readback(self.test_group)
 
-        self.assertEqual(len(db.errors), 2)
+        self.assertEqual(len(db.catch), 2)
 
     def test_check_sp_format_fail_rbv(self):
         db = checker.DbChecker("")
@@ -226,7 +226,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_sp_formatting(":SP:RBV", self.test_group, self.test_group.SP_RBV)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_check_sp_format_fail_sp(self):
         db = checker.DbChecker("")
@@ -236,7 +236,7 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_sp_formatting(":SP", self.test_group, self.test_group.SP)
 
-        self.assertEqual(len(db.errors), 1)
+        self.assertEqual(len(db.catch), 1)
 
     def test_check_sp_format_success(self):
         db = checker.DbChecker("")
@@ -246,4 +246,4 @@ class TestDbCheckerWithRecords(unittest.TestCase):
 
         db.check_sp_formatting(":SP", self.test_group, self.test_group.SP)
 
-        self.assertFalse(db.errors)
+        self.assertFalse(db.catch)

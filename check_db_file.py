@@ -184,7 +184,7 @@ DIRECTORIES_TO_IGNORE_STRICT = [
 ]
 
 
-def check_files(db_files, strict, verbose):
+def check_files(db_files, strict, verbose, strict_error=False):
     total_errors = 0
     total_strict_errors = 0
     total_warning = 0
@@ -200,7 +200,7 @@ def check_files(db_files, strict, verbose):
             syntax_warnings = 0
             syntax_errors = 0
             if f in strict:
-                syntax_warnings, syntax_errors = dbc.syntax_check()
+                syntax_warnings, syntax_errors = dbc.syntax_check(strict_error)
             pv_warnings, pv_errors = dbc.pv_check()
             if syntax_errors > 0 or pv_errors > 0:
                 failed.append(f)
@@ -243,13 +243,16 @@ if __name__ == '__main__':
     parser.add_argument(
         '-v', '--verbose', action='store_true', help='Run in verbose mode'
     )
+    parser.add_argument(
+        '-s', '--strict', action='store_true', help='Run with strict checks as errors instead of warnings'
+    )
     args = parser.parse_args()
 
     if len(args.directory) == 0 and len(args.files) == 0:
         parser.print_help()
     else:
         if len(args.files) > 0:
-            check_files(args.files, args.files, args.verbose)
+            check_files(args.files, args.files, args.verbose,args.strict)
         if len(args.directory) > 0:
             if args.recursive:
                 to_check = []
@@ -264,9 +267,9 @@ if __name__ == '__main__':
                     for file in files:
                         if file.endswith(".db"):
                             strict_check.append(os.path.join(root, file))
-                check_files(to_check, strict_check, args.verbose)
+                check_files(to_check, strict_check, args.verbose, args.strict)
             else:
                 # Find db files in directory
                 os.chdir(args.directory[0])
                 files = glob.glob("*.db")
-                check_files(files, files, args.verbose)
+                check_files(files, files, args.verbose,args.strict)

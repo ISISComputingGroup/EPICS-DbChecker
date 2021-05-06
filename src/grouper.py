@@ -35,14 +35,15 @@ class Grouper:
         for name in names:
             # get all aliases
             for alias in record_dict[name].aliases:
-                ma1, ma2 = find_related_type(alias, name)
-                # put alias in correct type, since its an alias for this record, must be at least one
                 group_name = self.get_stem(name)
+                ma1, ma2 = find_related_type(alias, group_name)
+                # put alias in correct type, since its an alias for this record, must be at least one
+
                 if ma1 is not None:
                     self.record_groups[group_name].SP = alias
                 elif ma2 is not None:
                     self.record_groups[group_name].SP_RBV = alias
-                else:
+                elif alias == group_name:
                     self.record_groups[group_name].RB = alias
 
             for s in self.record_groups.keys():
@@ -50,7 +51,7 @@ class Grouper:
                 if name == self.record_groups[s].main:
                     continue
 
-                ma1, ma2 = find_related_type(name, s)
+                ma1, ma2 = find_related_type(name, self.get_stem(s))
 
                 # put record in matching type if it matches any
                 if ma1 is not None:
@@ -90,15 +91,15 @@ class Grouper:
         else:
             # Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
             if ma1 is not None:
-                s = ma1.groups()[0]
-                if not (s in self.record_groups.keys()):
-                    self.record_groups[s] = RecordGroup(s, name)
-                    self.record_groups[s].SP_RBV = name
+                stem = ma1.groups()[0]
+                if not (stem in self.record_groups.keys()):
+                    self.record_groups[stem] = RecordGroup(stem, name)
+                    self.record_groups[stem].SP_RBV = name
             else:
-                s = ma2.groups()[0]
-                if not (s in self.record_groups.keys()):
-                    self.record_groups[s] = RecordGroup(s, name)
-                    self.record_groups[s].SP = name
+                stem = ma2.groups()[0]
+                if not (stem in self.record_groups.keys()):
+                    self.record_groups[stem] = RecordGroup(stem, name)
+                    self.record_groups[stem].SP = name
 
     def print_groups(self):
         for s in self.record_groups.keys():
