@@ -1,10 +1,11 @@
 import re
-
+import unittest
 from src.db_parser.lexer import Lexer
 from src.db_parser.parser import Parser
 from src.grouper import Grouper
 from src.pv_checks import run_pv_checks
 from src.db_parser.common import DbSyntaxError
+
 
 # Rules implemented:
 # 1) Name should be uppercase
@@ -32,35 +33,40 @@ def remove_macro(pvname, remove_colon=True):
     return pvname
 
 
-class DbChecker:
-    def __init__(self, filename, debug=False):
+class DbChecker(unittest.TestCase):
+    def __init__(self, db, test_to_run, filename, debug=False, strict=False):
+        super(DbChecker, self).__init__(test_to_run)
         self.filename = filename
         self.errors = []
         self.warnings = []
         self.catch = []
         self.debug = debug
         self.file = None
-        self.parsed_db = None
+        self.parsed_db = db
         self.records_dict = {}
+        self.strict = strict
 
-    # handles this separately so we can set a parsed_db manually for unit tests.
-    def parse_db_file(self):
-        try:
-            self.file = open(self.filename)
-            self.parsed_db = Parser(Lexer(self.file.read())).db()
-            self.file.close()
-        except Exception as e:
-            print("Error occured with file {}".format(self.filename))
-            raise e
+    # # handles this separately so we can set a parsed_db manually for unit tests.
+    # def parse_db_file(self):
+    #     try:
+    #         self.file = open(self.filename)
+    #         self.parsed_db = Parser(Lexer(self.file.read())).db()
+    #         self.file.close()
+    #     except Exception as e:
+    #         print("Error occured with file {}".format(self.filename))
+    #         raise e
 
-    def pv_check(self):
+    def test_pv_check(self):
         print("\n** CHECKING {}'s PVs **".format(self.filename))
         warnings, errors = run_pv_checks(self.parsed_db)
         print("**  PV ERROR COUNT = {} **".format(errors))
         print("**  PV WARNING COUNT = {} **".format(warnings))
-        return warnings, errors
+        self.assertListEqual([], errors)
+        return warnings, len(errors)
 
-    def syntax_check(self, strict=False):
+    def test_syntax_check(self):
+        if self.strict:
+            return
         print("\n** CHECKING {}'s Syntax **".format(self.filename))
         grouper = Grouper()
         # Check for consistency in whether PV macros are followed by colons
@@ -75,7 +81,7 @@ class DbChecker:
             [self.check_case(name) for name in groups[group_name].get_all()]
             [self.check_chars(name) for name in groups[group_name].get_all()]
             self.check_candidates(groups[group_name])
-        if strict:
+        if self.strict:
             self.errors = self.catch
         else:
             self.warnings += self.catch
@@ -87,6 +93,8 @@ class DbChecker:
 
         print("** WARNING COUNT = {} **".format(len(self.warnings)))
         print("** ERROR COUNT = {} **".format(len(self.errors)))
+
+        self.assertListEqual([], self.errors)
 
         return len(self.warnings), len(self.errors)
 

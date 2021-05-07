@@ -286,4 +286,4 @@ def run_pv_checks(db):
         num_warnings += len(warnings)
         if warnings:
             print(build_failure_message("Warning", warnings))
-    return num_warnings, num_errors
+    return num_warnings, errors

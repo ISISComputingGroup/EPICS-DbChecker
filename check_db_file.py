@@ -1,8 +1,12 @@
 import argparse
 import os
 import glob
+import unittest
+import xmlrunner
 from src.db_checker import DbChecker
 from src.db_parser.common import DbSyntaxError
+from src.db_parser.lexer import Lexer
+from src.db_parser.parser import Parser
 
 DIRECTORIES_TO_ALWAYS_IGNORE = [
     ".git",
@@ -192,33 +196,32 @@ def check_files(db_files, strict, verbose, strict_error=False):
     final_item = len(db_files)
     failed_to_parse = []
     failed = []
+    suite = unittest.TestSuite()
     for f in db_files:
         try:
             fp = os.path.abspath(f)
-            dbc = DbChecker(fp, verbose)
-            dbc.parse_db_file()
+            with open(fp) as file:
+                parsed_db = Parser(Lexer(file.read())).db()
+            suite.addTest(DbChecker(parsed_db, "test_pv_check",f, verbose, strict_error))
+            suite.addTest(DbChecker(parsed_db, "test_syntax_check",f, verbose, strict_error))
+            #dbc.parse_db_file()
             syntax_warnings = 0
             syntax_errors = 0
-            if f in strict:
-                syntax_warnings, syntax_errors = dbc.syntax_check(strict_error)
-            pv_warnings, pv_errors = dbc.pv_check()
-            if syntax_errors > 0 or pv_errors > 0:
-                failed.append(f)
-            total_warning += syntax_warnings + pv_warnings
-            total_errors += syntax_errors + pv_errors
-            total_strict_errors += syntax_errors
+            # if f in strict:
+            #     syntax_warnings, syntax_errors = dbc.test_syntax_check()
+            # pv_warnings, pv_errors = dbc.test_pv_check()
+            # if syntax_errors > 0 or pv_errors > 0:
+            #     failed.append(f)
+            # total_warning += syntax_warnings + pv_warnings
+            # total_errors += syntax_errors + pv_errors
+            # total_strict_errors += syntax_errors
         except DbSyntaxError as e:
             print(e)
             failed_to_parse.append(f)
         except IOError:
             print("FILE ERROR: File {} does not exist".format(f))
-        finally:
-            print("File {} of {}.".format(current_item, final_item))
-            current_item += 1
-    if final_item > 1:
-        print("** TOTAL WARNING COUNT = {} **".format(total_warning))
-        print("** TOTAL ERROR COUNT = {} **".format(total_errors))
-        print("** TOTAL STRICT ERROR COUNT = {} **".format(total_strict_errors))
+
+    success = xmlrunner.XMLTestRunner(output=os.path.dirname(os.path.realpath(__file__))).run(suite).wasSuccessful()
     if len(failed_to_parse) > 0:
         print("Failed to parse the following files: \n{}".format(failed_to_parse))
     if len(failed) > 0:
