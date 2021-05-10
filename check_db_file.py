@@ -186,6 +186,7 @@ DIRECTORIES_TO_IGNORE_STRICT = [
     #  "wm323",
     #  "zfcntrl"
 ]
+output_dir = ""
 
 
 def check_files(db_files, strict, verbose, strict_error=False):
@@ -222,13 +223,10 @@ def check_files(db_files, strict, verbose, strict_error=False):
         except IOError:
             print("FILE ERROR: File {} does not exist".format(f))
 
-    success = xmlrunner.XMLTestRunner(output=os.path.dirname(os.path.realpath(__file__))).run(suite).wasSuccessful()
+    success = xmlrunner.XMLTestRunner(output=output_dir).run(suite).wasSuccessful()
+    print(output_dir)
     if len(failed_to_parse) > 0:
         print("Failed to parse the following files: \n{}".format(failed_to_parse))
-    if len(failed) > 0:
-        print("The following files failed the checks: \n")
-        for f in failed:
-            print(f)
 
 
 if __name__ == '__main__':
@@ -236,6 +234,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '-d', '--directory', nargs=1, default=[],
         help='The directory to search for db files in'
+    )
+    parser.add_argument(
+        '-o', '--output', nargs=1, default="",
+        help='The directory to output xml file to'
     )
     parser.add_argument(
         '-f', '--files', nargs='*', default=[],
@@ -251,10 +253,13 @@ if __name__ == '__main__':
         '-s', '--strict', action='store_true', help='Run with strict checks as errors instead of warnings'
     )
     args = parser.parse_args()
-
     if len(args.directory) == 0 and len(args.files) == 0:
         parser.print_help()
     else:
+        if len(args.output) > 0:
+            output_dir = args.output[0]
+        else:
+            output_dir = os.path.dirname(os.path.realpath(__file__))
         if len(args.files) > 0:
             check_files(args.files, args.files, args.verbose,args.strict)
         if len(args.directory) > 0:
