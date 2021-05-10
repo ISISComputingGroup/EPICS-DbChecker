@@ -33,9 +33,22 @@ def remove_macro(pvname, remove_colon=True):
     return pvname
 
 
-class DbChecker(unittest.TestCase):
-    def __init__(self, db, test_to_run, filename, debug=False, strict=False):
-        super(DbChecker, self).__init__(test_to_run)
+class DbCheckerTests(unittest.TestCase):
+    def __init__(self, db, test_to_run, filename, debug, strict):
+        super(DbCheckerTests, self).__init__(test_to_run)
+        self.dbc = DbChecker(db, filename, debug, strict)
+
+    def test_pv_check(self):
+        warnings, errors = self.dbc.pv_check()
+        self.assertListEqual([], errors)
+
+    def test_syntax_check(self):
+        warnings, errors = self.dbc.syntax_check()
+        self.assertListEqual([], errors)
+
+
+class DbChecker():
+    def __init__(self, db, filename, debug=False, strict=False):
         self.filename = filename
         self.errors = []
         self.warnings = []
@@ -56,17 +69,14 @@ class DbChecker(unittest.TestCase):
     #         print("Error occured with file {}".format(self.filename))
     #         raise e
 
-    def test_pv_check(self):
+    def pv_check(self):
         print("\n** CHECKING {}'s PVs **".format(self.filename))
         warnings, errors = run_pv_checks(self.parsed_db)
-        print("**  PV ERROR COUNT = {} **".format(errors))
+        print("**  PV ERROR COUNT = {} **".format(len(errors)))
         print("**  PV WARNING COUNT = {} **".format(warnings))
-        self.assertListEqual([], errors)
-        return warnings, len(errors)
+        return warnings, errors
 
-    def test_syntax_check(self):
-        if self.strict:
-            return
+    def syntax_check(self):
         print("\n** CHECKING {}'s Syntax **".format(self.filename))
         grouper = Grouper()
         # Check for consistency in whether PV macros are followed by colons
@@ -94,9 +104,7 @@ class DbChecker(unittest.TestCase):
         print("** WARNING COUNT = {} **".format(len(self.warnings)))
         print("** ERROR COUNT = {} **".format(len(self.errors)))
 
-        self.assertListEqual([], self.errors)
-
-        return len(self.warnings), len(self.errors)
+        return len(self.warnings), self.errors
 
     def check_macro_syntax(self):
         colon = None

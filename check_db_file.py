@@ -3,7 +3,7 @@ import os
 import glob
 import unittest
 import xmlrunner
-from src.db_checker import DbChecker
+from src.db_checker import DbCheckerTests
 from src.db_parser.common import DbSyntaxError
 from src.db_parser.lexer import Lexer
 from src.db_parser.parser import Parser
@@ -202,8 +202,9 @@ def check_files(db_files, strict, verbose, strict_error=False):
             fp = os.path.abspath(f)
             with open(fp) as file:
                 parsed_db = Parser(Lexer(file.read())).db()
-            suite.addTest(DbChecker(parsed_db, "test_pv_check",f, verbose, strict_error))
-            suite.addTest(DbChecker(parsed_db, "test_syntax_check",f, verbose, strict_error))
+            suite.addTest(DbCheckerTests(parsed_db, "test_pv_check", f, verbose, strict_error))
+            if f in strict:
+                suite.addTest(DbCheckerTests(parsed_db, "test_syntax_check", f, verbose, strict_error))
             #dbc.parse_db_file()
             syntax_warnings = 0
             syntax_errors = 0
