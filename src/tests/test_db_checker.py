@@ -6,7 +6,7 @@ from src.db_parser.EPICS_collections import Record
 
 class TestDbChecker(unittest.TestCase):
     def test_empty(self):
-        self.assertIsNotNone(checker.DbChecker("",""))
+        self.assertIsNotNone(checker.DbChecker("", ""))
 
     def test_remove_macro_no_macro(self):
         self.assertEqual(checker.remove_macro("No_Macro"), "No_Macro")

@@ -47,7 +47,7 @@ class DbCheckerTests(unittest.TestCase):
         self.assertListEqual([], errors)
 
 
-class DbChecker():
+class DbChecker:
     def __init__(self, db, filename, debug=False, strict=False):
         self.filename = filename
         self.errors = []
@@ -59,25 +59,15 @@ class DbChecker():
         self.records_dict = {}
         self.strict = strict
 
-    # # handles this separately so we can set a parsed_db manually for unit tests.
-    # def parse_db_file(self):
-    #     try:
-    #         self.file = open(self.filename)
-    #         self.parsed_db = Parser(Lexer(self.file.read())).db()
-    #         self.file.close()
-    #     except Exception as e:
-    #         print("Error occured with file {}".format(self.filename))
-    #         raise e
-
     def pv_check(self):
-        print("\n** CHECKING {}'s PVs **".format(self.filename))
+        print(f"\n** CHECKING {self.filename}'s PVs **")
         warnings, errors = run_pv_checks(self.parsed_db)
-        print("**  PV ERROR COUNT = {} **".format(len(errors)))
-        print("**  PV WARNING COUNT = {} **".format(warnings))
+        print(f"**  PV ERROR COUNT = {len(errors)} **")
+        print(f"**  PV WARNING COUNT = {warnings} **")
         return warnings, errors
 
     def syntax_check(self):
-        print("\n** CHECKING {}'s Syntax **".format(self.filename))
+        print(f"\n** CHECKING {self.filename}'s Syntax **")
         grouper = Grouper()
         # Check for consistency in whether PV macros are followed by colons
         self.check_macro_syntax()
@@ -101,8 +91,8 @@ class DbChecker():
         for e in self.errors:
             print(e)
 
-        print("** WARNING COUNT = {} **".format(len(self.warnings)))
-        print("** ERROR COUNT = {} **".format(len(self.errors)))
+        print(f"** WARNING COUNT = {len(self.warnings)} **")
+        print(f"** ERROR COUNT = {len(self.errors)} **")
 
         return len(self.warnings), self.errors
 
