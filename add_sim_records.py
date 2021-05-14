@@ -161,7 +161,7 @@ def generate_modifed_db(file_in_path, db, file_out_path="generated.db", insert_s
         sim_record_name = prefix + "SIM"
         dis_record_name = prefix + "DISABLE"
 
-        if insert_sims and not sim_record_name in records_dict:
+        if insert_sims and sim_record_name not in records_dict:
             out_file.write('record(bo, "' + sim_record_name + '")\n')
             out_file.write('{\n')
             out_file.write('    field(SCAN, "Passive")\n')
@@ -171,7 +171,7 @@ def generate_modifed_db(file_in_path, db, file_out_path="generated.db", insert_s
             out_file.write('    field(VAL, "$(RECSIM=0)")\n')
             out_file.write('}\n\n')
 
-        if insert_disable and not dis_record_name in records_dict:
+        if insert_disable and dis_record_name not in records_dict:
             out_file.write('record(bo, "' + dis_record_name + '") \n')
             out_file.write('{\n')
             out_file.write('    field(DESC, "Disable comms")\n')

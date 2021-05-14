@@ -117,7 +117,6 @@ class Parser(object):
             tuple of (key, value)
         """
         self.consume(TokenTypes.FIELD)
-        # return self.key_value_pair()
         return Field(*self.key_value_pair(), has_macro=has_macro)
 
     def info(self):
@@ -129,7 +128,6 @@ class Parser(object):
             tuple of (key, value)
         """
         self.consume(TokenTypes.INFO)
-        # return self.key_value_pair()
         return Field(*self.key_value_pair())
 
     def alias_field(self):
@@ -174,7 +172,6 @@ class Parser(object):
             self.consume(TokenTypes.MACRO)
         # Special case for records with no body
         if self.current_token.type != TokenTypes.L_BRACE:
-            # return {"type": record_type, "name": record_name, "fields": [], "infos": [], "aliases": []}
             return Record(record_type, record_name, [], [], [])
         with self.brace_delimited_block():
             while self.current_token.type != TokenTypes.R_BRACE:
@@ -192,7 +189,6 @@ class Parser(object):
                     self.raise_error("Expected info, field or alias")
                 previous_token_macro = False
 
-        # return {"type": record_type, "name": record_name, "fields": fields, "infos": infos, "aliases": aliases}
         return Record(record_type, record_name, infos, fields, aliases)
 
     def alias(self):

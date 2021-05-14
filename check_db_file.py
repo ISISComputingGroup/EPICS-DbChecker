@@ -20,8 +20,8 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     ".ci",
     "areaDetector",  # Has some huge DBs which take forever to parse.
     ".vs",
-    "DbChecker",  # tests that delibratly fail here
-    "DbUnitChecker",  # tests that delibratly fail here
+    "DbChecker",  # tests that deliberately fail here
+    "DbUnitChecker",  # tests that deliberately fail here
     "base",  # need to fix parsing of {} in fields before checking here
     "ICP_Binaries",  # contains files that end in .db not in .db format
     "seq",
@@ -50,172 +50,56 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "motorExtensions"
 ]
 
-# For the stricter checks, we only care about dbs written by locally
+# For the stricter checks, we only care about dbs written by ISIS
 DIRECTORIES_TO_IGNORE_STRICT = [
-    # "AG3631A",
-    # "AG53220A", #Add to hardware list?
-    # "Agilent_53220A", same as above
-    # "aldn1000",
-    # "ASTRIUM",
-    #  "barndoors",
-    #  "BKHOFF",
-
-    #  "CAENMCA",
-    #  "CAENVME",
-
-    #  "CCD100",
-    #  "CONEXAGP",
-    #  "COUETTE",
-    #  "cryosms",
-    #  "CRYVALVE",
-    #  "CYBAMAN",
     "DAQmxBase",
     "dbVerbose_20130124",
-    #  "DELFTBPMAG",
-    #  "DELFTDCMAG",
-    #  "DELFTSHEAR",
     "devIocStats",
-    #  "DFKPS",
-    #  "dh2000",
     "dma4500m",
     "dna4500m",
-    #  "ECLab",
-    #  "EGXCOLIM",
     "ethercat",
-    #  "FERMCHOP",
-
-    #  "FINS",
-    #  "flipprps",
-    #  "FMR",
-    #  "FZJDDFCH",
-    #  "GALIL",
     "galil",
-    #  "GAMRY",
-
-    #  "GEMORC",
-
-    #  "GP2Camera",
-    #  "HAMEG8123",
-    #  "Hameg_8123",
-    #  "heliox",
-    #  "HIFIMAG",
-    #  "HIFIMAGS",
-    #  "hlx503",
-    # "HVCAEN",
-    #  "HVCAENx527",
-    #  "IEG",
-    #  "ILM200",
-    #  "indfurn",
-    #  "INSTETC",
-    #  "INSTRON",
     "iocbuilder-3-20",
     "ipApp",
-    #  "IPS",
-    #  "isisdae",
-    #  "isisdaedata",
-    #  "itc503",
-    #  "jaws",
-    #  "jsco4180",
-    #  "JULABO",
-    #  "keithley_2001",
-    #  "kepco",
-    #  "keylkg",
-    #  "KHLY2700",
     "knr1050",
-    #  "lakeshore340",
-    #  "lakeshore372",
-    #  "LINKAM95",
-    #  "LINMOT",
-    #  "LKSH336",
-    #  "LKSH460",
     "lua",
-    #  "magnet3D",
-    #  "mca",
     "MCAG_Base_Project",
-    #  "MCLEN",
-    #  "mercuryitc",
-    #  "mezflipr",
-    #  "motionSetPoints",
-
-    #  "moxa12XX",
-    #  "MSH150",
-    #  "MuonJaws",
-    #  "NEOCERA",
     "NetShrVar",
     "NetStreams",
-    #  "nGEM-BBTX",
-    #  "ngpspsu",
-    #  "NIMATRO",
-    #  "NWPRTXPS",
-    #  "oercone",
-    #  "PIMOT",
     "pixelman",
     "pr4000",
     "procServControl",
     "ReadASCII",
-    #  "RKNPS",
-    #  "rotating_sample_changer",
-    #  "RotBench",
-    #  "RunControl",
-    #  "RUNCTRL",
-    #  "SAMPOS",
     "separator",
-    #  "SKFChopper",
-    #  "SKFMB350",
-    #  "SM300",
-    #  "SMC100",
-    #  "sp2xx",
-    #  "SPINFLIPPER306015",
-
-    #  "superlogics",
-    #  "TDK_LAMBDA_GENESYS",
-    #  "TEKDMM40X0",
-    #  "Tektronix_DMM_40X0",
-
-    #  "TPG",
-    #  "TRITON",
-    #  "ttiEX355P",
-    #  "ttiplp",
-    #  "TWINCAT",
     "utilities",
     "utilitiesApp",
     "VisualDCT",
-    #  "wbvalve",
     "webget",
-    #  "WinDDE",
-    #  "wm323",
-    #  "zfcntrl"
 ]
 output_dir = ""
 
 
 def check_files(db_files, strict, verbose, strict_error=False):
-    total_errors = 0
-    total_strict_errors = 0
-    total_warning = 0
-    current_item = 1
-    final_item = len(db_files)
     failed_to_parse = []
-    failed = []
     suite = unittest.TestSuite()
-    for f in db_files:
+    for filename in db_files:
         try:
-            fp = os.path.abspath(f)
-            with open(fp) as file:
-                parsed_db = Parser(Lexer(file.read())).db()
-            suite.addTest(DbCheckerTests(parsed_db, "test_pv_check", f, verbose, strict_error))
-            if f in strict:
-                suite.addTest(DbCheckerTests(parsed_db, "test_syntax_check", f, verbose, strict_error))
+            filename = os.path.abspath(filename)
+            with open(filename) as db_file:
+                parsed_db = Parser(Lexer(db_file.read())).db()
+            suite.addTest(DbCheckerTests(parsed_db, "test_pv_check", filename, verbose, strict_error))
+            if filename in strict:
+                suite.addTest(DbCheckerTests(parsed_db, "test_syntax_check", filename, verbose, strict_error))
         except DbSyntaxError as e:
             print(e)
-            failed_to_parse.append(f)
+            failed_to_parse.append(filename)
         except IOError:
-            print("FILE ERROR: File {} does not exist".format(f))
+            print("FILE ERROR: File {} does not exist".format(filename))
 
-    success = xmlrunner.XMLTestRunner(output=output_dir).run(suite).wasSuccessful()
-    print(output_dir)
+    xmlrunner.XMLTestRunner(output=output_dir).run(suite).wasSuccessful()
+    print(f"Test results output to {output_dir}")
     if len(failed_to_parse) > 0:
-        print("Failed to parse the following files: \n{}".format(failed_to_parse))
+        print(f"Failed to parse the following files: \n{failed_to_parse}")
 
 
 def append_reduced_file_list(directory_to_walk, directory_to_ignore, list):

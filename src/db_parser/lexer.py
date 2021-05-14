@@ -39,7 +39,7 @@ def _escape(var):
     """
     Returns the input variable escaped and wrapped in a regex capture group.
     """
-    return "({})".format(re.escape(var))
+    return f"({re.escape(var)})"
 
 
 class Lexer(six.Iterator):
