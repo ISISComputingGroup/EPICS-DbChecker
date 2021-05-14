@@ -27,7 +27,7 @@ class MockLexer(six.Iterator):
         """
         Adds a bracketed key-value pair to the mocked lexer. Key is a literal, value is a quoted string.
         """
-        return self\
+        return self \
             .add_token(TokenTypes.L_BRACKET) \
             .add_token(TokenTypes.LITERAL, '{}'.format(key)) \
             .add_token(TokenTypes.COMMA) \
@@ -41,10 +41,10 @@ class MockLexer(six.Iterator):
         return self.add_token(TokenTypes.INFO).add_key_value_pair(field_name, field_value)
 
     def add_alias_field(self, value):
-        return self\
-            .add_token(TokenTypes.ALIAS)\
-            .add_token(TokenTypes.L_BRACKET)\
-            .add_token(TokenTypes.QUOTED_STRING, '"{}"'.format(value))\
+        return self \
+            .add_token(TokenTypes.ALIAS) \
+            .add_token(TokenTypes.L_BRACKET) \
+            .add_token(TokenTypes.QUOTED_STRING, '"{}"'.format(value)) \
             .add_token(TokenTypes.R_BRACKET)
 
     def add_alias(self, record_name, alias_name):
@@ -62,6 +62,7 @@ class MockLexer(six.Iterator):
                 for t in self.tokens:
                     yield t
                 yield MockLexer.EOF_TOKEN
+
             self.gen = gen()
 
         return next(self.gen)
@@ -80,7 +81,6 @@ class ParserTests(unittest.TestCase):
         Parser(lexer).db()
 
     def test_WHEN_parser_given_a_quoted_string_THEN_parser_can_extract_the_value(self):
-
         val = "HELLO"
 
         lexer = MockLexer() \
@@ -89,7 +89,6 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(Parser(lexer).value(), val)
 
     def test_WHEN_parser_given_a_string_literal_THEN_parser_can_extract_the_value(self):
-
         val = "TESTVALUE"
 
         lexer = MockLexer() \
@@ -104,7 +103,8 @@ class ParserTests(unittest.TestCase):
         with self.assertRaises(DbSyntaxError):
             Parser(lexer).value()
 
-    def test_GIVEN_a_bracketed_key_value_pair_where_both_values_are_quoted_WHEN_parse_key_value_pair_THEN_can_extract_key_and_value(self):
+    def test_GIVEN_a_bracketed_key_value_pair_where_both_values_are_quoted_WHEN_parse_key_value_pair_THEN_can_extract_key_and_value(
+            self):
         key, value = "Key", "Value"
 
         # ("KEY", "VALUE")
@@ -120,7 +120,8 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parsed_key, key)
         self.assertEqual(parsed_value, value)
 
-    def test_GIVEN_a_bracketed_key_value_pair_where_first_value_is_literal_and_second_value_is_quoted_WHEN_parse_key_value_pair_THEN_can_extract_key_and_value(self):
+    def test_GIVEN_a_bracketed_key_value_pair_where_first_value_is_literal_and_second_value_is_quoted_WHEN_parse_key_value_pair_THEN_can_extract_key_and_value(
+            self):
         key, value = "Key", "Value"
 
         # (KEY, "VALUE")
@@ -131,7 +132,8 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parsed_key, key)
         self.assertEqual(parsed_value, value)
 
-    def test_GIVEN_a_bracketed_key_value_pair_where_both_values_are_literal_WHEN_parse_key_value_pair_THEN_can_extract_key_and_value(self):
+    def test_GIVEN_a_bracketed_key_value_pair_where_both_values_are_literal_WHEN_parse_key_value_pair_THEN_can_extract_key_and_value(
+            self):
         key, value = "Key", "Value"
 
         # (KEY, VALUE)
@@ -164,8 +166,8 @@ class ParserTests(unittest.TestCase):
         key, value = "PINI", "YES"
 
         # field(PINI, "YES")
-        lexer = MockLexer()\
-            .add_token(TokenTypes.FIELD)\
+        lexer = MockLexer() \
+            .add_token(TokenTypes.FIELD) \
             .add_key_value_pair(key, value)
 
         parsed_field = Parser(lexer).field()
@@ -180,9 +182,9 @@ class ParserTests(unittest.TestCase):
 
         # record(ai, "$(P)TEST") {}
 
-        lexer = MockLexer()\
-            .add_record_header(rec_type, rec_name)\
-            .add_token(TokenTypes.L_BRACE)\
+        lexer = MockLexer() \
+            .add_record_header(rec_type, rec_name) \
+            .add_token(TokenTypes.L_BRACE) \
             .add_token(TokenTypes.R_BRACE)
 
         parsed_record = Parser(lexer).record()
@@ -193,7 +195,8 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parsed_record.infos, [])
         self.assertEqual(parsed_record.aliases, [])
 
-    def test_GIVEN_a_record_declaration_containing_a_field_and_an_info_WHEN_parse_record_THEN_parser_can_extract_the_information(self):
+    def test_GIVEN_a_record_declaration_containing_a_field_and_an_info_WHEN_parse_record_THEN_parser_can_extract_the_information(
+            self):
         rec_type, rec_name = "ai", "$(P)TEST"
         field_name, field_val = "PINI", "YES"
         info_name, info_val = "alarm", "TEST_01"
@@ -202,11 +205,11 @@ class ParserTests(unittest.TestCase):
         #     field(PINI, "YES")
         #     info(alarm, "TEST_01")
         # }
-        lexer = MockLexer()\
-            .add_record_header(rec_type, rec_name)\
-            .add_token(TokenTypes.L_BRACE)\
-            .add_field(field_name, field_val)\
-            .add_info_field(info_name, info_val)\
+        lexer = MockLexer() \
+            .add_record_header(rec_type, rec_name) \
+            .add_token(TokenTypes.L_BRACE) \
+            .add_field(field_name, field_val) \
+            .add_info_field(info_name, info_val) \
             .add_token(TokenTypes.R_BRACE)
 
         parsed_record = Parser(lexer).record()
@@ -217,17 +220,18 @@ class ParserTests(unittest.TestCase):
         self.assertEqual([field.unpack() for field in parsed_record.infos], [(info_name, info_val)])
         self.assertEqual(parsed_record.aliases, [])
 
-    def test_GIVEN_a_record_declaration_containing_an_alias_WHEN_parse_record_THEN_parser_can_extract_the_information(self):
+    def test_GIVEN_a_record_declaration_containing_an_alias_WHEN_parse_record_THEN_parser_can_extract_the_information(
+            self):
         rec_type, rec_name = "ai", "$(P)TEST"
         alias_name = "$(P)ALIAS"
 
         # record(ai, "$(P)TEST") {
         #     alias("$(P)ALIAS")
         # }
-        lexer = MockLexer()\
-            .add_record_header(rec_type, rec_name)\
-            .add_token(TokenTypes.L_BRACE)\
-            .add_alias_field(alias_name)\
+        lexer = MockLexer() \
+            .add_record_header(rec_type, rec_name) \
+            .add_token(TokenTypes.L_BRACE) \
+            .add_alias_field(alias_name) \
             .add_token(TokenTypes.R_BRACE)
 
         parsed_record = Parser(lexer).record()
@@ -238,17 +242,18 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parsed_record.infos, [])
         self.assertEqual(parsed_record.aliases, [alias_name])
 
-    def test_GIVEN_a_record_declaration_with_a_separate_alias_WHEN_parse_record_THEN_parser_can_extract_the_information(self):
+    def test_GIVEN_a_record_declaration_with_a_separate_alias_WHEN_parse_record_THEN_parser_can_extract_the_information(
+            self):
         rec_type, rec_name = "ai", "$(P)TEST"
         alias_name = "$(P)ALIAS"
 
         # record(ai, "$(P)TEST") {
         # }
         # alias("$(P)TEST", "$(P)ALIAS")
-        lexer = MockLexer()\
-            .add_record_header(rec_type, rec_name)\
-            .add_token(TokenTypes.L_BRACE)\
-            .add_token(TokenTypes.R_BRACE)\
+        lexer = MockLexer() \
+            .add_record_header(rec_type, rec_name) \
+            .add_token(TokenTypes.L_BRACE) \
+            .add_token(TokenTypes.R_BRACE) \
             .add_alias(rec_name, alias_name)
 
         parsed_db = Parser(lexer).db()
@@ -272,12 +277,12 @@ class ParserTests(unittest.TestCase):
         # }
         # record(bi, "$(P)TEST2") {
         # }
-        lexer = MockLexer()\
-            .add_record_header(rec_type_1, rec_name_1)\
-            .add_token(TokenTypes.L_BRACE)\
-            .add_token(TokenTypes.R_BRACE)\
-            .add_record_header(rec_type_2, rec_name_2)\
-            .add_token(TokenTypes.L_BRACE)\
+        lexer = MockLexer() \
+            .add_record_header(rec_type_1, rec_name_1) \
+            .add_token(TokenTypes.L_BRACE) \
+            .add_token(TokenTypes.R_BRACE) \
+            .add_record_header(rec_type_2, rec_name_2) \
+            .add_token(TokenTypes.L_BRACE) \
             .add_token(TokenTypes.R_BRACE)
 
         parsed_db = Parser(lexer).db()
@@ -298,10 +303,7 @@ class ParserTests(unittest.TestCase):
 
         # record(ai, "$(P)TEST1")
         # record(bi, "$(P)TEST2")
-        lexer = MockLexer()\
-            .add_record_header(rec_type_1, rec_name_1)\
-            .add_record_header(rec_type_2, rec_name_2)\
-
+        lexer = MockLexer().add_record_header(rec_type_1, rec_name_1).add_record_header(rec_type_2, rec_name_2)
         parsed_db = Parser(lexer).db()
 
         self.assertEqual(len(parsed_db), 2)

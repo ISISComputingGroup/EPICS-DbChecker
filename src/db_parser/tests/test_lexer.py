@@ -163,7 +163,6 @@ class LexerTests(unittest.TestCase):
         self.assertListEqual(tokens, expected_tokens)
 
     def test_GIVEN_content_on_multiple_lines_WHEN_lexed_THEN_line_numbers_are_correct(self):
-
         content = """
         
         record"""

@@ -5,10 +5,12 @@ from src.db_parser.tokens import TokenTypes
 from src.db_parser.common import DbSyntaxError
 from src.db_parser.EPICS_collections import *
 
+
 class Parser(object):
     """
     Main db_parser. Takes input tokens from the given lexer and builds an EPICS DB out of them.
     """
+
     def __init__(self, lexer):
         self.lexer = lexer
         self.current_token = None

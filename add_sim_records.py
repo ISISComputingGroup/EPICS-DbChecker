@@ -24,7 +24,7 @@ def find_macro(name):
 
 def get_sim_name(name):
     ans = find_macro(name)
-    
+
     if ans is not None:
         macro = ans[0]
         pvname = ans[1]
@@ -40,9 +40,9 @@ def get_sim_name(name):
 
 def add_waveform_specfic(nelm, ftvl):
     string = ''
-    if not(nelm is None) or nelm == "":
+    if not (nelm is None) or nelm == "":
         string += '    field(NELM, "' + nelm + '")\n'
-    if not(ftvl is None) or ftvl == "":
+    if not (ftvl is None) or ftvl == "":
         string += '    field(FTVL, "' + ftvl + '")\n'
     return string
 
@@ -56,22 +56,22 @@ def generate_single_record(original_record, name):
         }}
         
         """.format(
-            original_record.type, name, add_waveform_specfic(
-                original_record.get_nelm(), original_record.get_ftvl()
-            )
-        ))
+        original_record.type, name, add_waveform_specfic(
+            original_record.get_nelm(), original_record.get_ftvl()
+        )
+    ))
 
 
-def generate_record_text(record, rb, sp, sp_rbv): 
+def generate_record_text(record, rb, sp, sp_rbv):
     string_builder = ''
-    if rb != '': 
+    if rb != '':
         rb = get_sim_name(rb)
         string_builder += generate_single_record(record, rb)
-        
+
         if sp != '':
             sp = get_sim_name(sp)
             string_builder += 'alias("' + rb + '","' + sp + '")' + '\n\n'
-            
+
         if sp_rbv != '':
             sp_rbv = get_sim_name(sp_rbv)
             string_builder += 'alias("' + rb + '","' + sp_rbv + '")' + '\n\n'
@@ -85,7 +85,7 @@ def generate_record_text(record, rb, sp, sp_rbv):
         # Cannot think of any reason why a SP:RBV would exist on its own...
         sp_rbv = get_sim_name(sp_rbv)
         string_builder += generate_single_record(record, sp_rbv)
-        
+
     return string_builder
 
 
@@ -107,24 +107,24 @@ def find_common_macro(db):
 
 def generate_sim_records(records, sim_record_name, dis_record_name):
     sim_prefix = sim_record_name + ':'
-    
+
     grouper = Grouper()
     groups = grouper.group_records(records)
-    
+
     output = ""
 
     for g in groups.keys():
         sim_record_name = get_sim_name(groups[g].main)
-        
+
         # Check sim record does not already exist - maybe someone
         # started writing the records but got bored!
         if sim_record_name in records:
             continue
-            
+
         # Skip record if it is a simulation record
         if groups[g].main.startswith(sim_prefix):
             continue
-            
+
         # Skip adding sim record if the original is a soft record
         if records[groups[g].main].get_dtyp() is None or \
                 records[groups[g].main].get_dtyp().lower() == "soft channel":
@@ -134,13 +134,13 @@ def generate_sim_records(records, sim_record_name, dis_record_name):
         if groups[g].RB != sim_record_name and groups[g].RB != dis_record_name:
             typ = records[groups[g].main].type
             # Don't add simulation record unless the type is suitable
-            if typ in ALLOWED_SIM_TYPES:            
+            if typ in ALLOWED_SIM_TYPES:
                 print("ADDED SIM RECORD = " + sim_record_name)
                 output += generate_record_text(
                     records[groups[g].main], groups[g].RB,
                     groups[g].SP, groups[g].SP_RBV
                 )
-                
+
     return output
 
 
@@ -221,17 +221,17 @@ def generate_modifed_db(file_in_path, db, file_out_path="generated.db", insert_s
                 out_file.write(new_records)
 
 
-if __name__ == '__main__':   
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'file', nargs=1, type=str, help='The base file for adding records to'
     )
     parser.add_argument(
-        '-o', '--output',  nargs=1, default=[],
+        '-o', '--output', nargs=1, default=[],
         help='The name of the output file'
     )
     args = parser.parse_args()
-    
+
     filename = args.file[0]
     with open(filename) as file:
         if len(args.output) == 1:
