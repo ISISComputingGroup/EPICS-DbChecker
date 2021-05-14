@@ -36,7 +36,7 @@ def remove_macro(pvname, remove_colon=True):
 class DbCheckerTests(unittest.TestCase):
     def __init__(self, db, test_to_run, filename, debug, strict):
         super(DbCheckerTests, self).__init__(test_to_run)
-        self.dbc = DbChecker(db, filename, debug, strict)
+        self.dbc = DbChecker(db, filename, strict)
 
     def test_pv_check(self):
         warnings, errors = self.dbc.pv_check()
@@ -47,13 +47,12 @@ class DbCheckerTests(unittest.TestCase):
         self.assertListEqual([], errors)
 
 
-class DbChecker():
-    def __init__(self, db, filename, debug=False, strict=False):
+class DbChecker:
+    def __init__(self, db, filename, strict=False):
         self.filename = filename
         self.errors = []
         self.warnings = []
         self.catch = []
-        self.debug = debug
         self.file = None
         self.parsed_db = db
         self.records_dict = {}
@@ -84,9 +83,6 @@ class DbChecker():
         record_names = [record.pv for record in self.parsed_db.records]
         self.records_dict = {name: record for name, record in zip(record_names, self.parsed_db.records)}
         groups = grouper.group_records(self.records_dict)
-        if self.debug:
-            for group_name in groups.keys():
-                print(group_name, groups[group_name].RB, groups[group_name].SP, groups[group_name].SP_RBV)
         for group_name in groups.keys():
             [self.check_case(name) for name in groups[group_name].get_all()]
             [self.check_chars(name) for name in groups[group_name].get_all()]
@@ -107,22 +103,24 @@ class DbChecker():
         return len(self.warnings), self.errors
 
     def check_macro_syntax(self):
+        """
+          This method checks for consistency in whether or not a macro is followed by a colon across a db
+        """
         colon = None
-        for r in self.parsed_db.records:
+        for record in self.parsed_db.records:
+            name_without_macro = remove_macro(record.pv, False)
             if colon is None:
-                n = remove_macro(r.pv, False)
-                colon = n.startswith(':')
+                colon = name_without_macro.startswith(':')
             else:
-                n = remove_macro(r.pv, False)
-                if n.startswith(':') != colon:
+                if name_without_macro.startswith(':') != colon:
                     if colon:
                         self.catch.append(
-                            "FORMAT ERROR: " + r.pv +
+                            "FORMAT ERROR: " + record.pv +
                             " should have a colon after the macro"
                         )
                     else:
                         self.catch.append(
-                            "FORMAT ERROR: " + r.pv +
+                            "FORMAT ERROR: " + record.pv +
                             " should not have a colon after the macro"
                         )
 

@@ -53,6 +53,9 @@ class MockLexer(six.Iterator):
     def add_record_header(self, record_type, record_name):
         return self.add_token(TokenTypes.RECORD).add_key_value_pair(record_type, record_name)
 
+    def add_macro(self):
+        return self.add_token(TokenTypes.MACRO)
+
     def __next__(self):
         if self.gen is None:
             def gen():
@@ -308,3 +311,21 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(rec2.get_type(), rec_type_2)
         self.assertEqual(rec1.pv, rec_name_1)
         self.assertEqual(rec2.pv, rec_name_2)
+
+    def test_GIVEN_record_containing_macros_WHEN_parse_record_THEN_parser_can_find_fields_with_starting_macro(self):
+        rec_type = "ai"
+        rec_name = "$(P)TEST1"
+        field_name_1, field_val_1 = "HASMACRO", "YES"
+        field_name_2, field_val_2 = "NOMACRO", "YES"
+
+        lexer = MockLexer() \
+            .add_record_header(rec_type, rec_name) \
+            .add_token(TokenTypes.L_BRACE) \
+            .add_macro() \
+            .add_field(field_name_1, field_val_1) \
+            .add_field(field_name_2, field_val_2) \
+            .add_token(TokenTypes.R_BRACE)
+
+        parsed_record = Parser(lexer).record()
+        self.assertTrue(parsed_record.fields[0].has_macro)
+        self.assertFalse(parsed_record.fields[1].has_macro)

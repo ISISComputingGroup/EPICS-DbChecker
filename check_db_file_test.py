@@ -18,9 +18,9 @@ class TestWithDBExamples(unittest.TestCase):
                                'CHARACTER ERROR: INVALIDCHAR-HERE contains illegal characters',
                                'FORMAT ERROR: $(P)PUSHBUTTON_1:SP does not have a correctly named readback alias',
                                'PARAMETER ERROR: $(P)SIM:OUTPUT2:STATUS has a :SP but not a :SP:RBV',
+                               'FORMAT ERROR: $(P)TEMP does not have a correctly formatted :SP:RBV',
                                'FORMAT ERROR: $(P)TEMP1 does not have a correctly formatted :SP',
                                'FORMAT ERROR: $(P)TEMP1 does not have a correctly formatted :SP:RBV',
-                               'FORMAT ERROR: $(P)TEMP:SP does not have a correctly named readback alias',
                                'FORMAT ERROR: $(P)TEST:TEST does not have a correctly formatted :SP',
                                'FORMAT ERROR: $(P)TEST:TEST does not have a correctly formatted :SP:RBV',
                                'FORMAT ERROR: $(P)Y does not have a correctly formatted :SP',
@@ -50,27 +50,27 @@ class TestWithDBExamples(unittest.TestCase):
 
     def test_pv_all(self):
         filepath = join(self.test_folder, "test_all.db")
-        self.run_pv_check(filepath, 0, [])
+        self.run_pv_check(filepath, [], [])
 
     def test_pv_log_info(self):
         filepath = join(self.test_folder, "test_log_info_errors.db")
-        self.run_pv_check(filepath, 0,
+        self.run_pv_check(filepath, [],
                           ['Invalid logging config: SHOULDFAIL:HEADER_REPEAT repeats the log info tag log_header1',
                            'Invalid logging config: SHOULDFAIL:LOGGING_PERIOD_REDEFINE alters the logging period type'])
 
     def test_pv_multiple(self):
         filepath = join(self.test_folder, "test_multiple_PVs.db")
-        self.run_pv_check(filepath, 1, [])
+        self.run_pv_check(filepath, ['Multiple instances of SHOULDPASS:MULTIPLEWARNING'], [])
 
     def test_pv_units(self):
         filepath = join(self.test_folder, "test_units.db")
-        self.run_pv_check(filepath, 0, [])
+        self.run_pv_check(filepath, [], [])
 
     def run_syntax_check(self, filepath, expected_warnings, expected_errors):
         self.maxDiff = 1500
         with open(filepath) as f:
             parsed_db = Parser(Lexer(f.read())).db()
-        dbc = DbChecker(parsed_db, filepath, True, True)
+        dbc = DbChecker(parsed_db, filepath, True)
         warnings, errors = dbc.syntax_check()
         # Check that the correct number of errors and warnings were found.
         self.assertListEqual(errors, expected_errors)
@@ -79,7 +79,7 @@ class TestWithDBExamples(unittest.TestCase):
     def run_pv_check(self, filepath, expected_warnings, expected_errors):
         with open(filepath) as f:
             parsed_db = Parser(Lexer(f.read())).db()
-        dbc = DbChecker(parsed_db, filepath, True, True)
+        dbc = DbChecker(parsed_db, filepath, True)
         warnings, errors = dbc.pv_check()
         # Check that the correct number of errors and warnings were found.
         self.assertListEqual(errors, expected_errors)

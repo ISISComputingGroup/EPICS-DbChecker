@@ -206,17 +206,6 @@ def check_files(db_files, strict, verbose, strict_error=False):
             suite.addTest(DbCheckerTests(parsed_db, "test_pv_check", f, verbose, strict_error))
             if f in strict:
                 suite.addTest(DbCheckerTests(parsed_db, "test_syntax_check", f, verbose, strict_error))
-            #dbc.parse_db_file()
-            syntax_warnings = 0
-            syntax_errors = 0
-            # if f in strict:
-            #     syntax_warnings, syntax_errors = dbc.test_syntax_check()
-            # pv_warnings, pv_errors = dbc.test_pv_check()
-            # if syntax_errors > 0 or pv_errors > 0:
-            #     failed.append(f)
-            # total_warning += syntax_warnings + pv_warnings
-            # total_errors += syntax_errors + pv_errors
-            # total_strict_errors += syntax_errors
         except DbSyntaxError as e:
             print(e)
             failed_to_parse.append(f)
@@ -229,6 +218,14 @@ def check_files(db_files, strict, verbose, strict_error=False):
         print("Failed to parse the following files: \n{}".format(failed_to_parse))
 
 
+def append_reduced_file_list(directory_to_walk, directory_to_ignore, list):
+    for root, dirs, files in directory_to_walk:
+        dirs[:] = [d for d in dirs if d not in directory_to_ignore]
+        for file in files:
+            if file.endswith(".db"):
+                list.append(os.path.join(root, file))
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -236,7 +233,7 @@ if __name__ == '__main__':
         help='The directory to search for db files in'
     )
     parser.add_argument(
-        '-o', '--output', nargs=1, default="",
+        '-o', '--output', default=os.path.dirname(os.path.realpath(__file__)),
         help='The directory to output xml file to'
     )
     parser.add_argument(
@@ -256,29 +253,20 @@ if __name__ == '__main__':
     if len(args.directory) == 0 and len(args.files) == 0:
         parser.print_help()
     else:
-        if len(args.output) > 0:
-            output_dir = args.output[0]
-        else:
-            output_dir = os.path.dirname(os.path.realpath(__file__))
+        output_dir = args.output
         if len(args.files) > 0:
-            check_files(args.files, args.files, args.verbose,args.strict)
+            check_files(args.files, args.files, args.verbose, args.strict)
         if len(args.directory) > 0:
             if args.recursive:
                 to_check = []
                 strict_check = []
-                for root, dirs, files in os.walk(args.directory[0]):
-                    dirs[:] = [d for d in dirs if d not in DIRECTORIES_TO_ALWAYS_IGNORE]
-                    for file in files:
-                        if file.endswith(".db"):
-                            to_check.append(os.path.join(root, file))
-                for root, dirs, files in os.walk(args.directory[0]):
-                    dirs[:] = [d for d in dirs if d not in DIRECTORIES_TO_IGNORE_STRICT]
-                    for file in files:
-                        if file.endswith(".db"):
-                            strict_check.append(os.path.join(root, file))
+                dir_list = os.walk(args.directory[0])
+                append_reduced_file_list(dir_list, DIRECTORIES_TO_ALWAYS_IGNORE, to_check)
+                append_reduced_file_list(dir_list, DIRECTORIES_TO_IGNORE_STRICT, strict_check)
+
                 check_files(to_check, strict_check, args.verbose, args.strict)
             else:
                 # Find db files in directory
                 os.chdir(args.directory[0])
                 files = glob.glob("*.db")
-                check_files(files, files, args.verbose,args.strict)
+                check_files(files, files, args.verbose, args.strict)

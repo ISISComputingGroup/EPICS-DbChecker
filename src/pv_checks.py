@@ -272,18 +272,10 @@ check_warning = [get_multiple_instances]
 
 def run_pv_checks(db):
     """
-    This method runs through the checks and returns the total number of errors and warnings.
+    This method runs through the checks and returns the all warnings and errors.
     """
-    num_errors = 0
-    num_warnings = 0
     for check in check_error:
         errors = check(db)
-        num_errors += len(errors)
-        if errors:
-            print(build_failure_message("Error", errors))
     for check in check_warning:
         warnings = check(db)
-        num_warnings += len(warnings)
-        if warnings:
-            print(build_failure_message("Warning", warnings))
-    return num_warnings, errors
+    return warnings, errors

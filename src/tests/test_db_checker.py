@@ -6,7 +6,7 @@ from src.db_parser.EPICS_collections import Record
 
 class TestDbChecker(unittest.TestCase):
     def test_empty(self):
-        self.assertIsNotNone(checker.DbChecker("",""))
+        self.assertIsNotNone(checker.DbChecker("", ""))
 
     def test_remove_macro_no_macro(self):
         self.assertEqual(checker.remove_macro("No_Macro"), "No_Macro")
@@ -14,10 +14,13 @@ class TestDbChecker(unittest.TestCase):
     def test_remove_macro_colon_true(self):
         self.assertEqual(checker.remove_macro("$(P):COLONADDED"), "COLONADDED")
 
+    def test_remove_macro_colon_true_no_colon(self):
+        self.assertEqual(checker.remove_macro("$(P)COLONADDED", True), "COLONADDED")
+
     def test_remove_macro_colon_false(self):
         self.assertEqual(checker.remove_macro("$(P):COLONADDED", False), ":COLONADDED")
 
-    def test_remove_macro_colon_true_no_colon(self):
+    def test_remove_macro_colon_false_no_colon(self):
         self.assertEqual(checker.remove_macro("$(P)COLONADDED", False), "COLONADDED")
 
     def test_check_case_success(self):

@@ -233,13 +233,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     filename = args.file[0]
-    file = open(filename)
-    if len(args.output) == 1:
-        out = args.output[0]
-    else:
-        f = os.path.split(filename)
-        out = "sim_" + f[-1] 
-    
-    db_records = Parser(Lexer(file.read())).db()
-    file.close()
+    with open(filename) as file:
+        if len(args.output) == 1:
+            out = args.output[0]
+        else:
+            f = os.path.split(filename)
+            out = "sim_" + f[-1]
+
+        db_records = Parser(Lexer(file.read())).db()
+
     generate_modifed_db(filename, db_records, out)

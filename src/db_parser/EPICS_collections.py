@@ -8,6 +8,7 @@ class Db:
     """
     This class holds all the data in a single db
     """
+
     def __init__(self, directory, records):
         self.directory = directory
         self.records = records
@@ -33,16 +34,10 @@ class Record:
         self.infos = infos
         self.aliases = aliases
         # Test for whether the PV is a simulation
-        if re.search(r'.SIM(:.|$)', pv) is not None:
-            self.simulation = True
-        else:
-            self.simulation = False
+        self.simulation = re.search(r'.SIM(:.|$)', pv) is not None
 
         # Test for whether the PV is a disable
-        if re.search(r'DISABLE', pv) is not None:
-            self.disable = True
-        else:
-            self.disable = False
+        self.disable = re.search(r'DISABLE', pv) is not None
 
     def is_sim(self):
         return self.simulation
@@ -70,10 +65,7 @@ class Record:
         This method checks all contained fields for instances of a
         pv given by the search input
         """
-        for field in self.fields:
-            if field.name == search:
-                return True
-        return False
+        return search in self.get_field_names()
 
     def get_field_value(self, search):
         """
@@ -108,11 +100,7 @@ class Record:
         This method returns a list of the values of all contained info
         fields that match the search input
         """
-        found_values = []
-        for info in self.infos:
-            if info.name == search:
-                found_values.append(info.value)
-        return found_values
+        return [info.value for info in self.infos if info.name == search]
 
     def is_interest(self):
         """
@@ -154,13 +142,13 @@ class Record:
         return None
 
 
-
 class Field:
     """
     This class holds all the data about each field within a record,
     not using a dictionary as may not be unique
     """
-    def __init__(self, name, value,has_macro=False):
+
+    def __init__(self, name, value, has_macro=False):
         self.name = name.strip()
         self.value = value
         self.has_macro = has_macro

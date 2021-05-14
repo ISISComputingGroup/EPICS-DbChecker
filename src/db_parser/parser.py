@@ -163,7 +163,7 @@ class Parser(object):
         fields = []
         infos = []
         aliases = []
-        line_has_macro = False
+        previous_token_macro = False
         self.consume(TokenTypes.RECORD)
         record_type, record_name = self.key_value_pair()
 
@@ -176,20 +176,19 @@ class Parser(object):
             return Record(record_type, record_name, [], [], [])
         with self.brace_delimited_block():
             while self.current_token.type != TokenTypes.R_BRACE:
+                if self.current_token.type == TokenTypes.MACRO:
+                    previous_token_macro = True
+                    self.consume(TokenTypes.MACRO)
+                    continue
                 if self.current_token.type == TokenTypes.FIELD:
-                    fields.append(self.field(line_has_macro))
-                    line_has_macro = False
+                    fields.append(self.field(previous_token_macro))
                 elif self.current_token.type == TokenTypes.INFO:
                     infos.append(self.info())
-                    line_has_macro = False
                 elif self.current_token.type == TokenTypes.ALIAS:
                     aliases.append(self.alias_field())
-                    line_has_macro = False
-                elif self.current_token.type == TokenTypes.MACRO:
-                    line_has_macro = True
-                    self.consume(TokenTypes.MACRO)
                 else:
                     self.raise_error("Expected info, field or alias")
+                previous_token_macro = False
 
         # return {"type": record_type, "name": record_name, "fields": fields, "infos": infos, "aliases": aliases}
         return Record(record_type, record_name, infos, fields, aliases)
