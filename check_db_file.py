@@ -85,7 +85,7 @@ def check_files(db_files, strict, verbose, strict_error=False):
     for filename in db_files:
         try:
             filename = os.path.abspath(filename)
-            with open(filename) as db_file:
+            with open(filename, encoding="utf-8") as db_file:
                 parsed_db = Parser(Lexer(db_file.read())).db()
             suite.addTest(DbCheckerTests(parsed_db, "test_pv_check", filename, verbose, strict_error))
             if filename in strict:
