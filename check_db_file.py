@@ -93,6 +93,9 @@ def check_files(db_files, strict, verbose, strict_error=False):
         except DbSyntaxError as e:
             print(e)
             failed_to_parse.append(filename)
+        except UnicodeDecodeError as e:
+            print("failed to open {}".format(filename)
+            print(e)
         except IOError:
             print("FILE ERROR: File {} does not exist".format(filename))
 
