@@ -35,7 +35,6 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "asyn",
     "autosave",
     "axis",
-    "axisRecord",
     "busy",
     "calc",
     "FileList",
