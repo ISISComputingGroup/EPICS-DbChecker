@@ -27,7 +27,7 @@ allowed_prefixable_units = {
 
 allowed_unit_prefixes = {'T', 'G', 'M', 'k', 'm', 'u', 'n', 'p', 'f'}
 
-allowed_non_prefixable_units = {'cm', 'cdeg', 'rpm', 'rps', 'psig'}
+allowed_non_prefixable_units = {'cm', 'cdeg', 'rpm', 'rps', 'psig', 'ppm', 'pp100k'}
 
 allowed_standalone_units = {
     'cdeg/ss',  # Needed by the GORC. Latter is a special case because
@@ -274,8 +274,10 @@ def run_pv_checks(db):
     """
     This method runs through the checks and returns the all warnings and errors.
     """
+    errors = []
+    warnings = []
     for check in check_error:
-        errors = check(db)
+        errors.extend(check(db))
     for check in check_warning:
-        warnings = check(db)
+        warnings.extend(check(db))
     return warnings, errors
