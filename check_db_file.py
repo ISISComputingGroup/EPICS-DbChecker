@@ -24,6 +24,7 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "DbUnitChecker",  # tests that deliberately fail here
     "base",  # need to fix parsing of {} in fields before checking here
     "ICP_Binaries",  # contains files that end in .db not in .db format
+    "cygwin",  # contains files that end in .db not in .db format
     "seq",
     "caLab_1505",
     "EUROTHRM",
@@ -37,6 +38,7 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "axis",
     "busy",
     "calc",
+    "delaygen",  # Vendor DBs don't follow ISIS conventions
     "FileList",
     "FileServer",
     "googletest",
@@ -46,13 +48,15 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "StreamDevice",
     "timestampRecord",
     "motor",
-    "motorExtensions"
+    "motorExtensions",
+    "devSnmp-nscl",  # Vendor DBs don't follow ISIS conventions
 ]
 
 # For the stricter checks, we only care about dbs written by ISIS
 DIRECTORIES_TO_IGNORE_STRICT = [
     "DAQmxBase",
     "dbVerbose_20130124",
+    "delaygen",
     "devIocStats",
     "dma4500m",
     "dna4500m",

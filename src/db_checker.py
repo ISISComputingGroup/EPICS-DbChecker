@@ -62,7 +62,7 @@ class DbChecker:
         print(f"\n** CHECKING {self.filename}'s PVs **")
         warnings, errors = run_pv_checks(self.parsed_db)
         print(f"**  PV ERROR COUNT = {len(errors)} **")
-        print(f"**  PV WARNING COUNT = {warnings} **")
+        print(f"**  PV WARNING COUNT = {len(warnings)} **")
         return warnings, errors
 
     def syntax_check(self):
