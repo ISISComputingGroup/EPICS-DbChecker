@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import glob
 import unittest
 import xmlrunner
@@ -106,6 +107,7 @@ def check_files(db_files, strict, verbose, strict_error=False):
     print(f"Test results output to {output_dir}")
     if len(failed_to_parse) > 0:
         print(f"Failed to parse the following files: \n{failed_to_parse}")
+    return len(failed_to_parse)
 
 
 def append_reduced_file_list(directory_to_walk, directory_to_ignore, list):
@@ -144,8 +146,9 @@ if __name__ == '__main__':
         parser.print_help()
     else:
         output_dir = args.output
+        failed_to_parse = 0
         if len(args.files) > 0:
-            check_files(args.files, args.files, args.verbose, args.strict)
+            failed_to_parse = check_files(args.files, args.files, args.verbose, args.strict)
         if len(args.directory) > 0:
             if args.recursive:
                 to_check = []
@@ -154,9 +157,10 @@ if __name__ == '__main__':
                 append_reduced_file_list(dir_list, DIRECTORIES_TO_ALWAYS_IGNORE, to_check)
                 append_reduced_file_list(dir_list, DIRECTORIES_TO_IGNORE_STRICT, strict_check)
 
-                check_files(to_check, strict_check, args.verbose, args.strict)
+                failed_to_parse = check_files(to_check, strict_check, args.verbose, args.strict)
             else:
                 # Find db files in directory
                 os.chdir(args.directory[0])
                 files = glob.glob("*.db")
-                check_files(files, files, args.verbose, args.strict)
+                failed_to_parse = check_files(files, files, args.verbose, args.strict)
+        sys.exit(1 if failed_to_parse > 0 else 0)
