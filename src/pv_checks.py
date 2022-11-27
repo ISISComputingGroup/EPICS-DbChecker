@@ -27,7 +27,7 @@ allowed_prefixable_units = {
 
 allowed_unit_prefixes = {'T', 'G', 'M', 'k', 'm', 'u', 'n', 'p', 'f'}
 
-allowed_non_prefixable_units = {'cm', 'cdeg', 'rpm', 'rps', 'psig', 'ppm', 'pp100k'}
+allowed_non_prefixable_units = {'cm', 'cdeg', 'rpm', 'rps', 'psig', 'ppm', 'pp100k', 'dBm'}
 
 allowed_standalone_units = {
     'cdeg/ss',  # Needed by the GORC. Latter is a special case because
