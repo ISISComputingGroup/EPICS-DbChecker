@@ -54,7 +54,9 @@ class MockLexer(six.Iterator):
         return self.add_token(TokenTypes.RECORD).add_key_value_pair(record_type, record_name)
 
     def add_macro(self):
-        return self.add_token(TokenTypes.MACRO)
+        return self.add_token(TokenTypes.BRACKET_MACRO_START)\
+            .add_token(TokenTypes.LITERAL)\
+            .add_token(TokenTypes.R_BRACKET)
 
     def __next__(self):
         if self.gen is None:
@@ -331,3 +333,15 @@ class ParserTests(unittest.TestCase):
         parsed_record = Parser(lexer).record()
         self.assertTrue(parsed_record.fields[0].has_macro)
         self.assertFalse(parsed_record.fields[1].has_macro)
+
+    def test_GIVEN_nested_macros_THEN_parsed_correctly(self):
+        lexer = MockLexer() \
+            .add_token(TokenTypes.BRACKET_MACRO_START) \
+            .add_token(TokenTypes.LITERAL) \
+            .add_token(TokenTypes.BRACKET_MACRO_START) \
+            .add_token(TokenTypes.LITERAL) \
+            .add_token(TokenTypes.R_BRACKET) \
+            .add_token(TokenTypes.R_BRACKET)
+
+        parsed_macro = Parser(lexer).macro()
+        self.assertEquals(parsed_macro, "")

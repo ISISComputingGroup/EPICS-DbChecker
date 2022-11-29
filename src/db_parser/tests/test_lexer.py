@@ -60,20 +60,33 @@ class LexerTests(unittest.TestCase):
 
         self.assertListEqual(tokens, expected_tokens)
 
-    def test_WHEN_lexer_lexes_a_comment_THEN_comment_is_ignored(self):
-        tokens = get_tokens_list(Lexer("# Hello this is a comment"))
+    def test_WHEN_lexer_lexes_a_macro_THEN_returns_macro_token(self):
+        tokens = get_tokens_list(Lexer("$(MACRO=VALUE)"))
 
         expected_tokens = [
+            token_from_type(TokenTypes.BRACKET_MACRO_START),
+            token_from_type(TokenTypes.LITERAL),
+            token_from_type(TokenTypes.EQUALS),
+            token_from_type(TokenTypes.LITERAL),
+            token_from_type(TokenTypes.R_BRACKET),
             token_from_type(TokenTypes.EOF)
         ]
 
         self.assertListEqual(tokens, expected_tokens)
 
-    def test_WHEN_lexer_lexes_a_macro_THEN_returns_macro_token(self):
-        tokens = get_tokens_list(Lexer("$(MACRO=VALUE)"))
+    def test_WHEN_lexer_lexes_a_nested_macro_THEN_returns_macro_token(self):
+        tokens = get_tokens_list(Lexer("$(MACRO1=$(MACRO2=VALUE))"))
 
         expected_tokens = [
-            token_from_type(TokenTypes.MACRO),
+            token_from_type(TokenTypes.BRACKET_MACRO_START),
+            token_from_type(TokenTypes.LITERAL),
+            token_from_type(TokenTypes.EQUALS),
+            token_from_type(TokenTypes.BRACKET_MACRO_START),
+            token_from_type(TokenTypes.LITERAL),
+            token_from_type(TokenTypes.EQUALS),
+            token_from_type(TokenTypes.LITERAL),
+            token_from_type(TokenTypes.R_BRACKET),
+            token_from_type(TokenTypes.R_BRACKET),
             token_from_type(TokenTypes.EOF)
         ]
 
@@ -141,10 +154,6 @@ class LexerTests(unittest.TestCase):
 
         self.assertListEqual(tokens, expected_tokens)
 
-    def test_WHEN_lexer_lexes_a_string_with_missing_end_quote_THEN_raises_syntax_error(self):
-        with self.assertRaises(DbSyntaxError):
-            get_tokens_list(Lexer(r'"This is a quoted string without a closing quote'))
-
     def test_WHEN_lexer_lexes_a_minimal_record_declaration_THEN_returns_an_appropriate_set_of_tokens(self):
         tokens = get_tokens_list(Lexer(r'record(ai, "$(P)TEST"){}'))
 
@@ -198,9 +207,6 @@ class LexerTests(unittest.TestCase):
         """
         tokens = get_tokens_list(Lexer(content))
 
-        expected_tokens = [
-            token_from_type(TokenTypes.RECORD),
-            token_from_type(TokenTypes.EOF),
-        ]
-
-        self.assertListEqual(tokens, expected_tokens)
+        self.assertEquals(tokens[0].type, TokenTypes.HASH)
+        self.assertEquals(tokens[-2].type, TokenTypes.RECORD)
+        self.assertEquals(tokens[-1].type, TokenTypes.EOF)
