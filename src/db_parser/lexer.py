@@ -50,7 +50,7 @@ class Lexer(six.Iterator):
     """
     Tokens to ignore. These are never returned from __next__
     """
-    IGNORED_TOKENS = [TokenTypes.WHITESPACE, TokenTypes.COMMENT]
+    IGNORED_TOKENS = [TokenTypes.WHITESPACE]
 
     """
     This provides a mapping between regexes and lexer tokens.
@@ -58,6 +58,10 @@ class Lexer(six.Iterator):
     The regexes are tried in order, the first one that matches get's it's token produced.
     """
     TOKEN_MAPPING = OrderedDict([
+        (_escape("$("),  # Macro start with brackets $(MACRO=VALUE)
+         TokenTypes.BRACKET_MACRO_START),
+        (_escape("${"),  # Macro start with curly braces ${MACRO=VALUE}
+         TokenTypes.BRACE_MACRO_START),
         (_escape("record"),
          TokenTypes.RECORD),
         (_escape("grecord"),
@@ -78,18 +82,18 @@ class Lexer(six.Iterator):
          TokenTypes.R_BRACE),
         (_escape(","),
          TokenTypes.COMMA),
+        (_escape("="),
+         TokenTypes.EQUALS),
         (r"(\".*?[^\\]\"|\"\")",  # Ignore escaped quotes within a string. Add special case for empty string
          TokenTypes.QUOTED_STRING),
-        (r"(\#.*)",
-         TokenTypes.COMMENT),
-        (r"(\$\([^\)]*\))",  # Macro with brackets $(MACRO=VALUE)
-         TokenTypes.MACRO),
-        (r"(\$\{[^\}]*\})",  # Macro with curly braces ${MACRO=VALUE}
-         TokenTypes.MACRO),
         (r"(\s+)",
          TokenTypes.WHITESPACE),
         (r"([a-zA-Z0-9\-\_\.\:]+)",  # Alphanumeric, -, _, ., :
          TokenTypes.LITERAL),
+        (_escape("#"),  # Mostly comments, but also things like $(MACRO=#) field(INPA, "blah") are valid...
+         TokenTypes.HASH),
+        (r"(.+)",  # Matches absolutely anything (as a last resort, for comment contents for example).
+         TokenTypes.UNKNOWN),
     ])
 
     # Change to keep track of macro

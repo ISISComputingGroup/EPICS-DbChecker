@@ -75,6 +75,15 @@ class Parser(object):
         """
         return self.delimited_block(start=TokenTypes.L_BRACE, end=TokenTypes.R_BRACE)
 
+    def literal_or_macro(self):
+        ret = ""
+        while self.current_token.type == TokenTypes.LITERAL or self.next_token_is_macro():
+            if self.current_token.type == TokenTypes.LITERAL:
+                ret += self.consume(TokenTypes.LITERAL)
+            else:
+                self.macro()
+        return ret
+
     def value(self):
         """
         Handler for values which are allowed to be quoted or not.
@@ -84,12 +93,10 @@ class Parser(object):
         Returns:
             The value with quotes stripped (if applicable)
         """
-        if self.current_token.type == TokenTypes.MACRO:
-            self.consume(TokenTypes.MACRO)
         if self.current_token.type == TokenTypes.QUOTED_STRING:
             return self.consume(TokenTypes.QUOTED_STRING)[1:-1]  # Strip quotes
-        elif self.current_token.type == TokenTypes.LITERAL:
-            return self.consume(TokenTypes.LITERAL)
+        elif self.current_token.type == TokenTypes.LITERAL or self.next_token_is_macro():
+            return self.literal_or_macro()
         else:
             self.raise_error("Expected either a literal or a string literal.")
 
@@ -142,6 +149,40 @@ class Parser(object):
         with self.bracket_delimited_block():
             return self.value()
 
+    def next_token_is_macro(self):
+        return self.current_token.type in [TokenTypes.BRACE_MACRO_START, TokenTypes.BRACKET_MACRO_START]
+
+    def macro(self):
+        if not self.next_token_is_macro():
+            self.raise_error("Expected start of macro")
+
+        end = TokenTypes.R_BRACE if self.current_token.type == TokenTypes.BRACE_MACRO_START else TokenTypes.R_BRACKET
+        self.consume(self.current_token.type)
+
+        while self.current_token.type != end and self.current_token.type != TokenTypes.EQUALS:
+            if self.current_token.type == TokenTypes.LITERAL:
+                self.consume(TokenTypes.LITERAL)
+            elif self.next_token_is_macro():
+                self.macro()
+            else:
+                self.raise_error("Expected macro or literal")
+
+        if self.current_token.type == TokenTypes.EQUALS:
+            self.consume(TokenTypes.EQUALS)
+            while self.current_token.type != end:
+                if self.current_token.type == TokenTypes.LITERAL:
+                    self.consume(TokenTypes.LITERAL)
+                elif self.next_token_is_macro():
+                    self.macro()
+                elif self.current_token.type == TokenTypes.HASH:
+                    # Bit of a special case, HASH in this context is not a comment but an allowable macro value
+                    self.consume(TokenTypes.HASH)
+                else:
+                    self.raise_error("Expected macro or literal")
+
+        self.consume(end)
+        return ""   # Assume all macros expand to empty string
+
     def record(self):
         """
         Handler for an EPICS DB record.
@@ -168,16 +209,21 @@ class Parser(object):
         record_type, record_name = self.key_value_pair()
 
         # Handle Macro before opening brace
-        if self.current_token.type == TokenTypes.MACRO:
-            self.consume(TokenTypes.MACRO)
+        if self.next_token_is_macro():
+            self.macro()
+
+        # Handle comments before opening brace
+        if self.current_token.type == TokenTypes.HASH:
+            self.comment()
+
         # Special case for records with no body
         if self.current_token.type != TokenTypes.L_BRACE:
             return Record(record_type, record_name, [], [], [])
         with self.brace_delimited_block():
             while self.current_token.type != TokenTypes.R_BRACE:
-                if self.current_token.type == TokenTypes.MACRO:
+                if self.next_token_is_macro():
                     previous_token_macro = True
-                    self.consume(TokenTypes.MACRO)
+                    self.macro()
                     continue
                 if self.current_token.type == TokenTypes.FIELD:
                     fields.append(self.field(previous_token_macro))
@@ -185,6 +231,8 @@ class Parser(object):
                     infos.append(self.info())
                 elif self.current_token.type == TokenTypes.ALIAS:
                     aliases.append(self.alias_field())
+                elif self.current_token.type == TokenTypes.HASH:
+                    self.comment()
                 else:
                     self.raise_error("Expected info, field or alias")
                 previous_token_macro = False
@@ -202,6 +250,14 @@ class Parser(object):
         self.consume(TokenTypes.ALIAS)
         return self.key_value_pair()
 
+    def comment(self):
+        lineno = self.current_token.line
+        self.consume(TokenTypes.HASH)
+
+        # Consume all remaining tokens on this line, and do nothing with them.
+        while self.current_token.line == lineno:
+            self.consume(self.current_token.type)
+
     def db(self):
         """
         Top-level handler for an EPICS DB. A db is described as being a collection of records.
@@ -212,6 +268,8 @@ class Parser(object):
         while self.current_token.type != TokenTypes.EOF:
             if self.current_token.type == TokenTypes.RECORD:
                 records.records.append(self.record())
+            elif self.current_token.type == TokenTypes.HASH:
+                self.comment()
             elif self.current_token.type == TokenTypes.ALIAS:
                 pv, alias = self.alias()
                 # Find the record that this alias belongs to, and add the alias to it.
@@ -220,8 +278,8 @@ class Parser(object):
                     if pv == rec.pv or pv in rec.aliases:
                         rec.aliases.append(alias)
                         break
-            elif self.current_token.type == TokenTypes.MACRO:
-                self.consume(TokenTypes.MACRO)
+            elif self.next_token_is_macro():
+                self.macro()
             else:
                 self.raise_error("Expected record or alias")
         return records

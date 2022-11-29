@@ -51,6 +51,9 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "motor",
     "motorExtensions",
     "devSnmp-nscl",  # Vendor DBs don't follow ISIS conventions
+    "devPearl.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
+    "gencontrol.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
+    "runcontrol.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
 ]
 
 # For the stricter checks, we only care about dbs written by ISIS
@@ -95,7 +98,8 @@ def check_files(db_files, strict, verbose, strict_error=False):
             if filename in strict:
                 suite.addTest(DbCheckerTests(parsed_db, "test_syntax_check", filename, verbose, strict_error))
         except DbSyntaxError as e:
-            print(e)
+
+            print(f"Failed to parse {filename} because: {e}")
             failed_to_parse.append(filename)
         except UnicodeDecodeError as e:
             print("failed to open {}".format(filename))
@@ -114,7 +118,7 @@ def append_reduced_file_list(directory_to_walk, directory_to_ignore, list):
     for root, dirs, files in directory_to_walk:
         dirs[:] = [d for d in dirs if d not in directory_to_ignore]
         for file in files:
-            if file.endswith(".db"):
+            if file.endswith(".db") and file not in directory_to_ignore:
                 list.append(os.path.join(root, file))
 
 
