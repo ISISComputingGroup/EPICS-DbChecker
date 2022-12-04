@@ -85,7 +85,7 @@ DIRECTORIES_TO_IGNORE_STRICT = [
 ]
 output_dir = ""
 
-
+# return False if all OK, True on error
 def check_files(db_files, strict, verbose, strict_error=False):
     failed_to_parse = []
     suite = unittest.TestSuite()
@@ -107,11 +107,11 @@ def check_files(db_files, strict, verbose, strict_error=False):
         except IOError:
             print("FILE ERROR: File {} does not exist".format(filename))
 
-    xmlrunner.XMLTestRunner(output=output_dir).run(suite).wasSuccessful()
+    success = xmlrunner.XMLTestRunner(output=output_dir).run(suite).wasSuccessful()
     print(f"Test results output to {output_dir}")
     if len(failed_to_parse) > 0:
         print(f"Failed to parse the following files: \n{failed_to_parse}")
-    return len(failed_to_parse)
+    return False if success and len(failed_to_parse) == 0 else True
 
 
 def append_reduced_file_list(directory_to_walk, directory_to_ignore, list):
@@ -150,9 +150,9 @@ if __name__ == '__main__':
         parser.print_help()
     else:
         output_dir = args.output
-        failed_to_parse = 0
+        checks_failed = False
         if len(args.files) > 0:
-            failed_to_parse = check_files(args.files, args.files, args.verbose, args.strict)
+            checks_failed = check_files(args.files, args.files, args.verbose, args.strict)
         if len(args.directory) > 0:
             if args.recursive:
                 to_check = []
@@ -161,10 +161,10 @@ if __name__ == '__main__':
                 append_reduced_file_list(dir_list, DIRECTORIES_TO_ALWAYS_IGNORE, to_check)
                 append_reduced_file_list(dir_list, DIRECTORIES_TO_IGNORE_STRICT, strict_check)
 
-                failed_to_parse = check_files(to_check, strict_check, args.verbose, args.strict)
+                checks_failed = check_files(to_check, strict_check, args.verbose, args.strict)
             else:
                 # Find db files in directory
                 os.chdir(args.directory[0])
                 files = glob.glob("*.db")
-                failed_to_parse = check_files(files, files, args.verbose, args.strict)
-        sys.exit(1 if failed_to_parse > 0 else 0)
+                checks_failed = check_files(files, files, args.verbose, args.strict)
+        sys.exit(1 if checks_failed else 0)
