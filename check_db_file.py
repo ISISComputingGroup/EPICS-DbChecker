@@ -56,6 +56,7 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "runcontrol.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
     "settings_xml.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
     "testParseJSON.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
+    "Lakeshore340.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
 ]
 
 # For the stricter checks, we only care about dbs written by ISIS
