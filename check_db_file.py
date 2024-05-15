@@ -48,6 +48,7 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "std",
     "StreamDevice",
     "timestampRecord",
+    "pvxs",
     "motor",
     "motorExtensions",
     "devSnmp-nscl",  # Vendor DBs don't follow ISIS conventions
