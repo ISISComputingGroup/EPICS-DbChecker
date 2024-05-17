@@ -1,5 +1,4 @@
 import re
-import six
 from collections import OrderedDict
 
 from src.db_parser.tokens import TokenTypes
@@ -42,7 +41,7 @@ def _escape(var):
     return f"({re.escape(var)})"
 
 
-class Lexer(six.Iterator):
+class Lexer():
     """
     Lexer, tokenises the database file into
     """
