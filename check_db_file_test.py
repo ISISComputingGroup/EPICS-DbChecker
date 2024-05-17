@@ -50,7 +50,7 @@ class TestWithDBExamples(unittest.TestCase):
 
     def test_pv_all(self):
         filepath = join(self.test_folder, "test_all.db")
-        self.run_pv_check(filepath, [], [])
+        self.run_pv_check(filepath, [], ['Missing description on SHOULDFAIL:NODESC', "Invalid unit 'BADUNIT' on SHOULDFAIL:BADUNIT", 'Description too long on SHOULDFAIL:LONGDESC', 'Missing ASG on SHOULDFAIL:CALCNOREADONLY', 'Missing units on SHOULDFAIL:NOUNITS', 'Multiple instances of fields EGU on SHOULDFAIL:DUPLICATE:EGU', 'Multiple instances of fields PINI on SHOULDFAIL:DUPLICATE:PINI'])
 
     def test_pv_log_info(self):
         filepath = join(self.test_folder, "test_log_info_errors.db")
@@ -64,7 +64,20 @@ class TestWithDBExamples(unittest.TestCase):
 
     def test_pv_units(self):
         filepath = join(self.test_folder, "test_units.db")
-        self.run_pv_check(filepath, [], [])
+        self.run_pv_check(filepath, [], ["Invalid unit 'bit kbyte^-1' on SHOULDFAIL:BITS_KBYTE^-1",
+                                         "Invalid unit 'm^-1' on SHOULDFAIL:M-1",
+                                         "Invalid unit 'm s^-1' on SHOULDFAIL:m_S-1",
+                                         "Invalid unit 'kkm' on SHOULDFAIL:BADUNIT:KKM",
+                                         "Invalid unit 'kmk' on SHOULDFAIL:BADUNIT:KMK",
+                                         "Invalid unit 'k/(m s)' on SHOULDFAIL:BADUNIT:KM-1_S-1",
+                                         "Invalid unit 'm/(As)' on SHOULDFAIL:BADUNIT:MA-1S-1",
+                                        "Invalid unit 'dm' on SHOULDFAIL:BADUNIT:DM",
+                                        "Invalid unit 'kM' on SHOULDFAIL:BADUNIT:CAPS",
+                                        "Invalid unit 'Km' on SHOULDFAIL:BADUNIT:CAPS_2",
+                                        "Invalid unit '1' on SHOULDFAIL:BADUNIT:1",
+                                        "Invalid unit 'm^-2' on SHOULDFAIL:BADUNIT:negative_square_power",
+                                        "Invalid unit 'm^-1' on SHOULDFAIL:BADUNIT:negative_power"])
+
 
     def run_syntax_check(self, filepath, expected_warnings, expected_errors):
         self.maxDiff = 1500
