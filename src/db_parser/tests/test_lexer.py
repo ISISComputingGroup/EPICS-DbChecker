@@ -1,7 +1,5 @@
 import unittest
 
-import six
-
 from src.db_parser.common import DbSyntaxError
 from src.db_parser.lexer import Lexer, Token
 from src.db_parser.tokens import TokenTypes
@@ -11,7 +9,7 @@ def get_tokens_list(lexer):
     tokens = []
     while True:
         try:
-            tokens.append(six.advance_iterator(lexer))
+            tokens.append(next(lexer))
         except StopIteration:
             break
     return tokens
