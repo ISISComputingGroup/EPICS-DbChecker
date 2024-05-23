@@ -1,4 +1,3 @@
-import six
 from contextlib import contextmanager
 
 from src.db_parser.tokens import TokenTypes
@@ -22,7 +21,7 @@ class Parser(object):
         """
         try:
             # Ignore macros and comments wherever they occur
-            self.current_token = six.advance_iterator(self.lexer)
+            self.current_token = next(self.lexer)
         except StopIteration:
             self.raise_error("Next token was requested, but none exists.")
 
