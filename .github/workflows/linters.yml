@@ -1,0 +1,33 @@
+name: Linters
+on: [pull_request]
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chartboost/ruff-action@491342200cdd1cf4d5132a30ddc546b3b5bc531b
+        with: 
+          changed-files: 'true'
+          args: 'check --config ruff.toml'
+      - uses: chartboost/ruff-action@491342200cdd1cf4d5132a30ddc546b3b5bc531b
+        with: 
+          changed-files: 'true'
+          args: 'format --check --config ruff.toml'
+  pyright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+           python-version: '3.10'
+      - run: pip install unittest-xml-reporting
+      - uses: actions/checkout@v4
+        with:
+           fetch-depth: 0
+      - name: install pyright
+        run: pip install pyright
+      - name: install diff_cover
+        run: pip install diff_cover
+      - name: install pyright_plugin
+        run: pip install git+https://github.com/DiamondLightSource/pyright_diff_quality_plugin.git
+      - name: Run Pyright on changes
+        run: diff-quality --violations=pyright --compare-branch origin/master
