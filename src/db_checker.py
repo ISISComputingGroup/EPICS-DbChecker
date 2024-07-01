@@ -93,7 +93,8 @@ class DbChecker:
 
     def check_macro_syntax(self):
         """
-        This method checks for consistency in whether or not a macro is followed by a colon across a db
+        This method checks for consistency in whether or not a macro 
+        is followed by a colon across a db
         """
         colon = None
         for record in self.parsed_db.records:

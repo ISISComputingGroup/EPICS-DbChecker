@@ -53,6 +53,13 @@ ignore = [
     "D102",
     "E501",
 ]
+"check_db_file_test.py" = [
+    "N802",
+    "D100",
+    "D101",
+    "D102",
+    "E501",
+]
 
 [lint.pydocstyle]
 # Use Google-style docstrings.

@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
 from src.db_parser.common import DbSyntaxError
-from src.db_parser.EPICS_collections import *
+from src.db_parser.epics_collections import Db, Field, Record
 from src.db_parser.tokens import TokenTypes
 
 
@@ -27,7 +27,9 @@ class Parser(object):
 
     def consume(self, token_type):
         """
-        Verifies that the lexer's current token is of the given type, and then advances the lexer by one token.
+        Verifies that the lexer's current token is of the given type, and then advances the lexer 
+        by one token.
+        
         Args:
             token_type: the expected type of the current token.
         """
@@ -40,7 +42,9 @@ class Parser(object):
 
     def raise_error(self, message):
         """
-        Error function if an unexpected token was encountered. Line numbers and current token information will be added.
+        Error function if an unexpected token was encountered. Line numbers and current token 
+        information will be added.
+        
         Args:
             message: A message to add to the error
         """
@@ -49,7 +53,8 @@ class Parser(object):
         else:
             raise DbSyntaxError(
                 "Unexpected token '{}' encountered at {}:{}: {}".format(
-                    self.current_token, self.current_token.line, self.current_token.col, message
+                    self.current_token, self.current_token.line, 
+                    self.current_token.col, message
                 )
             )
 
@@ -104,7 +109,8 @@ class Parser(object):
 
     def key_value_pair(self):
         """
-        Handler for key value pairs surrounded by brackets. Both the key and value are allowed to be quoted or not.
+        Handler for key value pairs surrounded by brackets. 
+        Both the key and value are allowed to be quoted or not.
         Examples:
             (ONVL, "1")
             ("HELLO", bonjour)
@@ -184,7 +190,8 @@ class Parser(object):
                 elif self.next_token_is_macro():
                     self.macro()
                 elif self.current_token.type == TokenTypes.HASH:
-                    # Bit of a special case, HASH in this context is not a comment but an allowable macro value
+                    # Bit of a special case, 
+                    # HASH in this context is not a comment but an allowable macro value
                     self.consume(TokenTypes.HASH)
                 else:
                     self.raise_error("Expected macro or literal")
@@ -282,7 +289,8 @@ class Parser(object):
             elif self.current_token.type == TokenTypes.ALIAS:
                 pv, alias = self.alias()
                 # Find the record that this alias belongs to, and add the alias to it.
-                # Don't error if we can't find the record that it belongs to - it might be in another DB
+                # Don't error if we can't find the record that it belongs to,
+                # it might be in another DB
                 for rec in records.records:
                     if pv == rec.pv or pv in rec.aliases:
                         rec.aliases.append(alias)
