@@ -1,8 +1,8 @@
 from contextlib import contextmanager
 
-from src.db_parser.tokens import TokenTypes
 from src.db_parser.common import DbSyntaxError
 from src.db_parser.EPICS_collections import *
+from src.db_parser.tokens import TokenTypes
 
 
 class Parser(object):

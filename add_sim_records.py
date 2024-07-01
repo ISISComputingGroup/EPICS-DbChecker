@@ -1,10 +1,11 @@
-import re
-import os
 import argparse
-from src.grouper import Grouper
+import os
+import re
 import textwrap
-from src.db_parser.parser import Parser
+
 from src.db_parser.lexer import Lexer
+from src.db_parser.parser import Parser
+from src.grouper import Grouper
 
 # Only add SIM fields if type is one of the following:
 ALLOWED_SIM_TYPES = [
@@ -40,9 +41,9 @@ def get_sim_name(name):
 
 def add_waveform_specfic(nelm, ftvl):
     string = ''
-    if not (nelm is None) or nelm == "":
+    if nelm is not None or nelm == "":
         string += '    field(NELM, "' + nelm + '")\n'
-    if not (ftvl is None) or ftvl == "":
+    if ftvl is not None or ftvl == "":
         string += '    field(FTVL, "' + ftvl + '")\n'
     return string
 

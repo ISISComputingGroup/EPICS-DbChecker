@@ -1,5 +1,4 @@
 import re
-import os
 from collections import defaultdict
 
 # list of those record types that should have a EGU field
@@ -246,7 +245,7 @@ def check_changed_period(failures, info_name, info_value, logging_period, rec):
             failures.append(
                 "Invalid logging config: "
                 "{source} alters the logging period "
-                "type".format(source=rec, tag=info_name)
+                "type".format(source=rec, )
             )
     return logging_period
 

@@ -1,8 +1,8 @@
 import re
 from collections import OrderedDict
 
-from src.db_parser.tokens import TokenTypes
 from src.db_parser.common import DbSyntaxError
+from src.db_parser.tokens import TokenTypes
 
 
 class Token(object):

@@ -1,6 +1,7 @@
 import unittest
-from src.db_checker import DbChecker
 from os.path import join
+
+from src.db_checker import DbChecker
 from src.db_parser.lexer import Lexer
 from src.db_parser.parser import Parser
 

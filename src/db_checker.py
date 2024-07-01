@@ -1,11 +1,8 @@
 import re
 import unittest
-from src.db_parser.lexer import Lexer
-from src.db_parser.parser import Parser
+
 from src.grouper import Grouper
 from src.pv_checks import run_pv_checks
-from src.db_parser.common import DbSyntaxError
-
 
 # Rules implemented:
 # 1) Name should be uppercase

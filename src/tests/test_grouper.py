@@ -1,6 +1,7 @@
 import unittest
-import src.grouper as g
+
 import src.db_parser.EPICS_collections as Ec
+import src.grouper as g
 
 
 class GrouperTest(unittest.TestCase):

@@ -1,6 +1,7 @@
 import unittest
-import src.pv_checks as pv
+
 import src.db_parser.EPICS_collections as Ec
+import src.pv_checks as pv
 
 
 class PvChecksTest(unittest.TestCase):
