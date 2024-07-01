@@ -1,7 +1,8 @@
 import unittest
+
 import src.db_checker as checker
-from src.grouper import RecordGroup
 from src.db_parser.EPICS_collections import Record
+from src.grouper import RecordGroup
 
 
 class TestDbChecker(unittest.TestCase):

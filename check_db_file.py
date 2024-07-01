@@ -1,9 +1,11 @@
 import argparse
+import glob
 import os
 import sys
-import glob
 import unittest
+
 import xmlrunner
+
 from src.db_checker import DbCheckerTests
 from src.db_parser.common import DbSyntaxError
 from src.db_parser.lexer import Lexer

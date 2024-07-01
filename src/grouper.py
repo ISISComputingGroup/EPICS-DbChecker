@@ -1,6 +1,7 @@
 import re
-from src.db_parser.parser import Parser
+
 from src.db_parser.lexer import Lexer
+from src.db_parser.parser import Parser
 
 
 class RecordGroup:
@@ -85,19 +86,19 @@ class Grouper:
         ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
         if ma1 is None and ma2 is None:
             # Something like DUMMYPV would get here
-            if not (name in self.record_groups.keys()):
+            if name not in self.record_groups.keys():
                 self.record_groups[name] = RecordGroup(name, name)
                 self.record_groups[name].RB = name
         else:
             # Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
             if ma1 is not None:
                 stem = ma1.groups()[0]
-                if not (stem in self.record_groups.keys()):
+                if stem not in self.record_groups.keys():
                     self.record_groups[stem] = RecordGroup(stem, name)
                     self.record_groups[stem].SP_RBV = name
             else:
                 stem = ma2.groups()[0]
-                if not (stem in self.record_groups.keys()):
+                if stem not in self.record_groups.keys():
                     self.record_groups[stem] = RecordGroup(stem, name)
                     self.record_groups[stem].SP = name
 
