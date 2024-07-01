@@ -78,7 +78,8 @@ class Lexer:
             (_escape(","), TokenTypes.COMMA),
             (_escape("="), TokenTypes.EQUALS),
             (
-                r"(\".*?[^\\]\"|\"\")",  # Ignore escaped quotes within a string. Add special case for empty string
+                # Ignore escaped quotes within a string. Add special case for empty string
+                r"(\".*?[^\\]\"|\"\")",  
                 TokenTypes.QUOTED_STRING,
             ),
             (r"(\s+)", TokenTypes.WHITESPACE),
@@ -89,11 +90,13 @@ class Lexer:
             (
                 _escape(
                     "#"
-                ),  # Mostly comments, but also things like $(MACRO=#) field(INPA, "blah") are valid...
+                ),  # Mostly comments, 
+                    # but also things like $(MACRO=#) field(INPA, "blah") are valid...
                 TokenTypes.HASH,
             ),
             (
-                r"(.+)",  # Matches absolutely anything (as a last resort, for comment contents for example).
+                # Matches absolutely anything (as a last resort, for comment contents for example).
+                r"(.+)",  
                 TokenTypes.UNKNOWN,
             ),
         ]

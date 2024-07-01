@@ -38,7 +38,8 @@ class Grouper:
             for alias in record_dict[name].aliases:
                 group_name = self.get_stem(name)
                 ma1, ma2 = find_related_type(alias, group_name)
-                # put alias in correct type, since its an alias for this record, must be at least one
+                # put alias in correct type, since its an alias for this record, 
+                # must be at least one
 
                 if ma1 is not None:
                     self.record_groups[group_name].SP = alias

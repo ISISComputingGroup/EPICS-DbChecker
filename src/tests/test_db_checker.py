@@ -1,7 +1,7 @@
 import unittest
 
 import src.db_checker as checker
-from src.db_parser.EPICS_collections import Record
+from src.db_parser.epics_collections import Record
 from src.grouper import RecordGroup
 
 

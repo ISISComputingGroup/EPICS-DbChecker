@@ -1,6 +1,6 @@
 import unittest
 
-import src.db_parser.EPICS_collections as ec
+import src.db_parser.epics_collections as ec
 
 
 class TestDBs(unittest.TestCase):

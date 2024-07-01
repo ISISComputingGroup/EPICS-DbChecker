@@ -290,8 +290,8 @@ def get_log_info_tags(db):
     """
     failures = []
 
-    # This originally was trying to check for duplicate logs etc. across multiple files simultaneously, but was failing
-    # possible future change?
+    # This originally was trying to check for duplicate logs etc.
+    # across multiple files simultaneously, but was failing possible future change?
 
     log_fields = {}
     logging_period = None
