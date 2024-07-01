@@ -67,9 +67,7 @@ class Grouper:
         return self.record_groups
 
     def get_stem(self, name):
-        ma1 = re.match(
-            r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
-        )
+        ma1 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name)
         ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
         group_name = name
         if ma1 is not None:
@@ -80,9 +78,7 @@ class Grouper:
 
     def find_record_type(self, name):
         # Stems are pure records, not aliases
-        ma1 = re.match(
-            r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
-        )
+        ma1 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name)
         ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
         if ma1 is None and ma2 is None:
             # Something like DUMMYPV would get here
@@ -104,19 +100,26 @@ class Grouper:
 
     def print_groups(self):
         for s in self.record_groups.keys():
-            print("s:{}, RB:{}, SP:{}, SP_RBV:{}".format(
-                s, self.record_groups[s].RB, self.record_groups[s].SP,
-                self.record_groups[s].SP_RBV)
+            print(
+                "s:{}, RB:{}, SP:{}, SP_RBV:{}".format(
+                    s,
+                    self.record_groups[s].RB,
+                    self.record_groups[s].SP,
+                    self.record_groups[s].SP_RBV,
+                )
             )
 
 
 def find_related_type(search, name):
     ma1 = re.match("^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)$", search)
-    ma2 = re.match("^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", search)
+    ma2 = re.match(
+        "^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$",
+        search,
+    )
     return ma1, ma2
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Simple test
     testfile = "./add_sim_records_tests/test_db.db"
     r = Parser(Lexer(testfile)).db()

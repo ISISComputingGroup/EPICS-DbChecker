@@ -1,6 +1,7 @@
 """
 This file holds the classes to hold the record and field data
 """
+
 import re
 
 
@@ -34,10 +35,10 @@ class Record:
         self.infos = infos
         self.aliases = aliases
         # Test for whether the PV is a simulation
-        self.simulation = re.search(r'.SIM(:.|$)', pv) is not None
+        self.simulation = re.search(r".SIM(:.|$)", pv) is not None
 
         # Test for whether the PV is a disable
-        self.disable = re.search(r'DISABLE', pv) is not None
+        self.disable = re.search(r"DISABLE", pv) is not None
 
     def is_sim(self):
         return self.simulation

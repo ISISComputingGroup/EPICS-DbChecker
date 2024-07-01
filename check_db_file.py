@@ -91,6 +91,7 @@ DIRECTORIES_TO_IGNORE_STRICT = [
 ]
 output_dir = ""
 
+
 # return False if all OK, True on error
 def check_files(db_files, strict, verbose, strict_error=False):
     failed_to_parse = []
@@ -100,11 +101,14 @@ def check_files(db_files, strict, verbose, strict_error=False):
             filename = os.path.abspath(filename)
             with open(filename) as db_file:
                 parsed_db = Parser(Lexer(db_file.read())).db()
-            suite.addTest(DbCheckerTests(parsed_db, "test_pv_check", filename, verbose, strict_error))
+            suite.addTest(
+                DbCheckerTests(parsed_db, "test_pv_check", filename, verbose, strict_error)
+            )
             if filename in strict:
-                suite.addTest(DbCheckerTests(parsed_db, "test_syntax_check", filename, verbose, strict_error))
+                suite.addTest(
+                    DbCheckerTests(parsed_db, "test_syntax_check", filename, verbose, strict_error)
+                )
         except DbSyntaxError as e:
-
             print(f"Failed to parse {filename} because: {e}")
             failed_to_parse.append(filename)
         except UnicodeDecodeError as e:
@@ -128,28 +132,30 @@ def append_reduced_file_list(directory_to_walk, directory_to_ignore, list):
                 list.append(os.path.join(root, file))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-d', '--directory', nargs=1, default=[],
-        help='The directory to search for db files in'
+        "-d", "--directory", nargs=1, default=[], help="The directory to search for db files in"
     )
     parser.add_argument(
-        '-o', '--output', default=os.path.dirname(os.path.realpath(__file__)),
-        help='The directory to output xml file to'
+        "-o",
+        "--output",
+        default=os.path.dirname(os.path.realpath(__file__)),
+        help="The directory to output xml file to",
     )
+    parser.add_argument("-f", "--files", nargs="*", default=[], help="The db file(s) to test")
     parser.add_argument(
-        '-f', '--files', nargs='*', default=[],
-        help='The db file(s) to test')
-    parser.add_argument(
-        '-r', '--recursive', action='store_true',
-        help='Check all db files below the specified directory'
+        "-r",
+        "--recursive",
+        action="store_true",
+        help="Check all db files below the specified directory",
     )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Run in verbose mode")
     parser.add_argument(
-        '-v', '--verbose', action='store_true', help='Run in verbose mode'
-    )
-    parser.add_argument(
-        '-s', '--strict', action='store_true', help='Run with strict checks as errors instead of warnings'
+        "-s",
+        "--strict",
+        action="store_true",
+        help="Run with strict checks as errors instead of warnings",
     )
     args = parser.parse_args()
     if len(args.directory) == 0 and len(args.files) == 0:

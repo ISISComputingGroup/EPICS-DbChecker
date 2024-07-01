@@ -21,11 +21,11 @@ from src.pv_checks import run_pv_checks
 
 
 def remove_macro(pvname, remove_colon=True):
-    if pvname.find('$') != -1:
-        left = pvname.rfind(')') + 1
+    if pvname.find("$") != -1:
+        left = pvname.rfind(")") + 1
         pvname = pvname[left:]
         # Remove leading : if there is one
-        if remove_colon and pvname.startswith(':'):
+        if remove_colon and pvname.startswith(":"):
             pvname = pvname[1:]
     return pvname
 
@@ -68,7 +68,9 @@ class DbChecker:
         # Check for consistency in whether PV macros are followed by colons
         self.check_macro_syntax()
         record_names = [record.pv for record in self.parsed_db.records]
-        self.records_dict = {name: record for name, record in zip(record_names, self.parsed_db.records)}
+        self.records_dict = {
+            name: record for name, record in zip(record_names, self.parsed_db.records)
+        }
         groups = grouper.group_records(self.records_dict)
         for group_name in groups.keys():
             [self.check_case(name) for name in groups[group_name].get_all()]
@@ -91,49 +93,44 @@ class DbChecker:
 
     def check_macro_syntax(self):
         """
-          This method checks for consistency in whether or not a macro is followed by a colon across a db
+        This method checks for consistency in whether or not a macro is followed by a colon across a db
         """
         colon = None
         for record in self.parsed_db.records:
             name_without_macro = remove_macro(record.pv, False)
             if colon is None:
-                colon = name_without_macro.startswith(':')
+                colon = name_without_macro.startswith(":")
             else:
-                if name_without_macro.startswith(':') != colon:
+                if name_without_macro.startswith(":") != colon:
                     if colon:
                         self.catch.append(
-                            "FORMAT ERROR: " + record.pv +
-                            " should have a colon after the macro"
+                            "FORMAT ERROR: " + record.pv + " should have a colon after the macro"
                         )
                     else:
                         self.catch.append(
-                            "FORMAT ERROR: " + record.pv +
-                            " should not have a colon after the macro"
+                            "FORMAT ERROR: "
+                            + record.pv
+                            + " should not have a colon after the macro"
                         )
 
     def check_case(self, name):
-        se = re.search('[a-z]', name)
+        se = re.search("[a-z]", name)
         if se is not None:
-            self.warnings.append(
-                "CASING ERROR: " + name + " should be upper-case"
-            )
+            self.warnings.append("CASING ERROR: " + name + " should be upper-case")
 
     def check_chars(self, name):
         name = remove_macro(name)
         # Only contains a-z A-Z 0-9 _ :
-        se = re.search(r'[^\w:]', name)
+        se = re.search(r"[^\w:]", name)
         if se is not None:
-            self.catch.append(
-                "CHARACTER ERROR: " + name + " contains illegal characters"
-            )
+            self.catch.append("CHARACTER ERROR: " + name + " contains illegal characters")
 
     def check_candidates(self, group):
         if group.main == group.SP:
             self.sp_main_checks(group)
         elif group.main == group.SP_RBV:
             self.catch.append(
-                "FORMAT ERROR: cannot have a SP:RBV "
-                "on its own ({})".format(group.SP_RBV)
+                "FORMAT ERROR: cannot have a SP:RBV " "on its own ({})".format(group.SP_RBV)
             )
         else:
             self.check_readback(group)
@@ -147,16 +144,10 @@ class DbChecker:
                 self.check_sp_formatting(":SP:RBV", group, group.SP_RBV)
             else:
                 # has SP:RBV but no SP - wrong
-                self.catch.append(
-                    "PARAMETER ERROR: " + group.RB +
-                    " has a :SP:RBV but not a :SP"
-                )
+                self.catch.append("PARAMETER ERROR: " + group.RB + " has a :SP:RBV but not a :SP")
         elif group.SP != "":
             # has SP but not SP:RBV
-            self.catch.append(
-                "PARAMETER ERROR: " + group.RB +
-                " has a :SP but not a :SP:RBV"
-            )
+            self.catch.append("PARAMETER ERROR: " + group.RB + " has a :SP but not a :SP:RBV")
         # Has neither, read only
         return
 
@@ -165,21 +156,18 @@ class DbChecker:
         combined_aliases = self.records_dict[group.main].aliases
         if group.SP_RBV is not None and group.SP_RBV in self.records_dict:
             combined_aliases += self.records_dict[group.SP_RBV].aliases
-        if group.RB == '':
+        if group.RB == "":
             self.catch.append(
-                "FORMAT ERROR: " + group.SP +
-                " does not have a correctly named readback alias"
+                "FORMAT ERROR: " + group.SP + " does not have a correctly named readback alias"
             )
         elif group.RB not in combined_aliases:
             # SP is somehow main despite rb not being an alias?
             self.catch.append(
-                "UNSPECIFIED ERROR: " + group.SP +
-                " is not correct, please see the rules"
+                "UNSPECIFIED ERROR: " + group.SP + " is not correct, please see the rules"
             )
 
     def check_sp_formatting(self, end, group, to_check):
         if not to_check.endswith(end):
             self.catch.append(
-                "FORMAT ERROR: " + group.main +
-                " does not have a correctly formatted " + end
+                "FORMAT ERROR: " + group.main + " does not have a correctly formatted " + end
             )
