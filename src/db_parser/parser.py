@@ -47,8 +47,11 @@ class Parser(object):
         if self.current_token is None:
             raise DbSyntaxError("No tokens found.")
         else:
-            raise DbSyntaxError("Unexpected token '{}' encountered at {}:{}: {}"
-                                .format(self.current_token, self.current_token.line, self.current_token.col, message))
+            raise DbSyntaxError(
+                "Unexpected token '{}' encountered at {}:{}: {}".format(
+                    self.current_token, self.current_token.line, self.current_token.col, message
+                )
+            )
 
     @contextmanager
     def delimited_block(self, start, end):
@@ -149,13 +152,20 @@ class Parser(object):
             return self.value()
 
     def next_token_is_macro(self):
-        return self.current_token.type in [TokenTypes.BRACE_MACRO_START, TokenTypes.BRACKET_MACRO_START]
+        return self.current_token.type in [
+            TokenTypes.BRACE_MACRO_START,
+            TokenTypes.BRACKET_MACRO_START,
+        ]
 
     def macro(self):
         if not self.next_token_is_macro():
             self.raise_error("Expected start of macro")
 
-        end = TokenTypes.R_BRACE if self.current_token.type == TokenTypes.BRACE_MACRO_START else TokenTypes.R_BRACKET
+        end = (
+            TokenTypes.R_BRACE
+            if self.current_token.type == TokenTypes.BRACE_MACRO_START
+            else TokenTypes.R_BRACKET
+        )
         self.consume(self.current_token.type)
 
         while self.current_token.type != end and self.current_token.type != TokenTypes.EQUALS:
@@ -180,7 +190,7 @@ class Parser(object):
                     self.raise_error("Expected macro or literal")
 
         self.consume(end)
-        return ""   # Assume all macros expand to empty string
+        return ""  # Assume all macros expand to empty string
 
     def record(self):
         """
