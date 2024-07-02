@@ -1,15 +1,18 @@
 import unittest
+
+import src.db_parser.epics_collections as ec
 import src.grouper as g
-import src.db_parser.EPICS_collections as Ec
 
 
 class GrouperTest(unittest.TestCase):
     record_name_list = ["TEMP", "TEMP:SP", "TEMP:SP:RBV", "NOTTEMP", "NOTTEMP:SP:RBV"]
-    record_dict = {record_name_list[0]: Ec.Record("type", record_name_list[0], [], [], []),
-                   record_name_list[1]: Ec.Record("type", record_name_list[1], [], [], []),
-                   record_name_list[2]: Ec.Record("type", record_name_list[2], [], [], []),
-                   record_name_list[3]: Ec.Record("type", record_name_list[3], [], [], []),
-                   record_name_list[4]: Ec.Record("type", record_name_list[4], [], [], [])}
+    record_dict = {
+        record_name_list[0]: ec.Record("type", record_name_list[0], [], [], []),
+        record_name_list[1]: ec.Record("type", record_name_list[1], [], [], []),
+        record_name_list[2]: ec.Record("type", record_name_list[2], [], [], []),
+        record_name_list[3]: ec.Record("type", record_name_list[3], [], [], []),
+        record_name_list[4]: ec.Record("type", record_name_list[4], [], [], []),
+    }
 
     def test_find_related_type_empty(self):
         result1, result2 = g.find_related_type("", "")
@@ -125,7 +128,9 @@ class GrouperTest(unittest.TestCase):
     def test_group_records_aliases(self):
         grouper = g.Grouper()
         tempalias = "TEMPALIAS"
-        self.record_dict[tempalias] = Ec.Record("type", tempalias, [], [], ["TEMPALIAS:SP", "TEMPALIAS:SP:RBV"])
+        self.record_dict[tempalias] = ec.Record(
+            "type", tempalias, [], [], ["TEMPALIAS:SP", "TEMPALIAS:SP:RBV"]
+        )
 
         print("Test Aliases 1")
         grouper.group_records(self.record_dict, True)
@@ -139,7 +144,9 @@ class GrouperTest(unittest.TestCase):
     def test_group_records_aliases_SP(self):
         grouper = g.Grouper()
         tempalias = "TEMPALIAS"
-        self.record_dict["TEMPALIAS:SP"] = Ec.Record("type", "TEMPALIAS:SP", [], [], ["TEMPALIAS", "TEMPALIAS:SP:RBV"])
+        self.record_dict["TEMPALIAS:SP"] = ec.Record(
+            "type", "TEMPALIAS:SP", [], [], ["TEMPALIAS", "TEMPALIAS:SP:RBV"]
+        )
 
         print("Test Aliases 2")
         grouper.group_records(self.record_dict, True)
