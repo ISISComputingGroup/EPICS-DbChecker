@@ -27,9 +27,9 @@ class Parser(object):
 
     def consume(self, token_type):
         """
-        Verifies that the lexer's current token is of the given type, and then advances the lexer 
+        Verifies that the lexer's current token is of the given type, and then advances the lexer
         by one token.
-        
+
         Args:
             token_type: the expected type of the current token.
         """
@@ -42,9 +42,9 @@ class Parser(object):
 
     def raise_error(self, message):
         """
-        Error function if an unexpected token was encountered. Line numbers and current token 
+        Error function if an unexpected token was encountered. Line numbers and current token
         information will be added.
-        
+
         Args:
             message: A message to add to the error
         """
@@ -53,8 +53,7 @@ class Parser(object):
         else:
             raise DbSyntaxError(
                 "Unexpected token '{}' encountered at {}:{}: {}".format(
-                    self.current_token, self.current_token.line, 
-                    self.current_token.col, message
+                    self.current_token, self.current_token.line, self.current_token.col, message
                 )
             )
 
@@ -109,7 +108,7 @@ class Parser(object):
 
     def key_value_pair(self):
         """
-        Handler for key value pairs surrounded by brackets. 
+        Handler for key value pairs surrounded by brackets.
         Both the key and value are allowed to be quoted or not.
         Examples:
             (ONVL, "1")
@@ -190,7 +189,7 @@ class Parser(object):
                 elif self.next_token_is_macro():
                     self.macro()
                 elif self.current_token.type == TokenTypes.HASH:
-                    # Bit of a special case, 
+                    # Bit of a special case,
                     # HASH in this context is not a comment but an allowable macro value
                     self.consume(TokenTypes.HASH)
                 else:
