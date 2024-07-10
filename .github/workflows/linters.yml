@@ -30,4 +30,4 @@ jobs:
       - name: install pyright_plugin
         run: pip install git+https://github.com/DiamondLightSource/pyright_diff_quality_plugin.git
       - name: Run Pyright on changes
-        run: diff-quality --violations=pyright --compare-branch origin/master
+        run: diff-quality --violations=pyright --compare-branch origin/master --fail-under=100
