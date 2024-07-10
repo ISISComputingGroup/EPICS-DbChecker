@@ -2,6 +2,6 @@ name: Linters
 on: [pull_request]
 jobs:
   call-workflow:
-    uses: ISISComputingGroup/reusable-workflows/.github/workflows/linters.yml@11f1e454c005de571d5261bf86d9711900cc00ff
+    uses: ISISComputingGroup/reusable-workflows/.github/workflows/linters.yml@424da5b4d86bcb60bf75e47e7b6effb62ae6068f
     with:
       compare-branch: origin/master
