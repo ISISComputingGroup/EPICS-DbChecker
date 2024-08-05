@@ -1,6 +1,7 @@
 import re
-from src.db_parser.parser import Parser
+
 from src.db_parser.lexer import Lexer
+from src.db_parser.parser import Parser
 
 
 class RecordGroup:
@@ -37,7 +38,8 @@ class Grouper:
             for alias in record_dict[name].aliases:
                 group_name = self.get_stem(name)
                 ma1, ma2 = find_related_type(alias, group_name)
-                # put alias in correct type, since its an alias for this record, must be at least one
+                # put alias in correct type, since its an alias for this record,
+                # must be at least one
 
                 if ma1 is not None:
                     self.record_groups[group_name].SP = alias
@@ -66,9 +68,7 @@ class Grouper:
         return self.record_groups
 
     def get_stem(self, name):
-        ma1 = re.match(
-            r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
-        )
+        ma1 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name)
         ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
         group_name = name
         if ma1 is not None:
@@ -79,43 +79,48 @@ class Grouper:
 
     def find_record_type(self, name):
         # Stems are pure records, not aliases
-        ma1 = re.match(
-            r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name
-        )
+        ma1 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", name)
         ma2 = re.match(r"(.+)[_:](SP|SETPOINT|SETP|SEP|SETPT)$", name)
         if ma1 is None and ma2 is None:
             # Something like DUMMYPV would get here
-            if not (name in self.record_groups.keys()):
+            if name not in self.record_groups.keys():
                 self.record_groups[name] = RecordGroup(name, name)
                 self.record_groups[name].RB = name
         else:
             # Something like DUMMYPV:SP or DUMMYPV:SP:RBV would get here
             if ma1 is not None:
                 stem = ma1.groups()[0]
-                if not (stem in self.record_groups.keys()):
+                if stem not in self.record_groups.keys():
                     self.record_groups[stem] = RecordGroup(stem, name)
                     self.record_groups[stem].SP_RBV = name
             else:
                 stem = ma2.groups()[0]
-                if not (stem in self.record_groups.keys()):
+                if stem not in self.record_groups.keys():
                     self.record_groups[stem] = RecordGroup(stem, name)
                     self.record_groups[stem].SP = name
 
     def print_groups(self):
         for s in self.record_groups.keys():
-            print("s:{}, RB:{}, SP:{}, SP_RBV:{}".format(
-                s, self.record_groups[s].RB, self.record_groups[s].SP,
-                self.record_groups[s].SP_RBV)
+            print(
+                "s:{}, RB:{}, SP:{}, SP_RBV:{}".format(
+                    s,
+                    self.record_groups[s].RB,
+                    self.record_groups[s].SP,
+                    self.record_groups[s].SP_RBV,
+                )
             )
 
 
 def find_related_type(search, name):
     ma1 = re.match("^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)$", search)
-    ma2 = re.match("^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$", search)
+    ma2 = re.match(
+        "^" + re.escape(name) + r"[_:](SP|SETPOINT|SETP|SEP|SETPT)[_:](RBV|RB|READBACK|READ)$",
+        search,
+    )
     return ma1, ma2
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Simple test
     testfile = "./add_sim_records_tests/test_db.db"
     r = Parser(Lexer(testfile)).db()

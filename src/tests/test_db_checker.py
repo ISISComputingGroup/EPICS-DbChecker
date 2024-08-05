@@ -1,7 +1,8 @@
 import unittest
+
 import src.db_checker as checker
+from src.db_parser.epics_collections import Record
 from src.grouper import RecordGroup
-from src.db_parser.EPICS_collections import Record
 
 
 class TestDbChecker(unittest.TestCase):
@@ -82,8 +83,11 @@ class TestDbChecker(unittest.TestCase):
 class TestDbCheckerWithRecords(unittest.TestCase):
     def setUp(self):
         self.test_group = RecordGroup("TEST", "TEST")
-        self.record_dict = {"TEST": Record("", "TEST", [], [], []), "TEST:SP": Record("", "TEST:SP", [], [], []),
-                            "TEST:SP:RBV": Record("", "TEST:SP:RBV", [], [], [])}
+        self.record_dict = {
+            "TEST": Record("", "TEST", [], [], []),
+            "TEST:SP": Record("", "TEST:SP", [], [], []),
+            "TEST:SP:RBV": Record("", "TEST:SP:RBV", [], [], []),
+        }
 
     def test_check_candidates_fail_sp_no_rb(self):
         db = checker.DbChecker("", "")

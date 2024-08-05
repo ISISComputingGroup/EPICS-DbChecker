@@ -1,8 +1,8 @@
 import re
 from collections import OrderedDict
 
-from src.db_parser.tokens import TokenTypes
 from src.db_parser.common import DbSyntaxError
+from src.db_parser.tokens import TokenTypes
 
 
 class Token(object):
@@ -41,7 +41,7 @@ def _escape(var):
     return f"({re.escape(var)})"
 
 
-class Lexer():
+class Lexer:
     """
     Lexer, tokenises the database file into
     """
@@ -56,44 +56,49 @@ class Lexer():
 
     The regexes are tried in order, the first one that matches get's it's token produced.
     """
-    TOKEN_MAPPING = OrderedDict([
-        (_escape("$("),  # Macro start with brackets $(MACRO=VALUE)
-         TokenTypes.BRACKET_MACRO_START),
-        (_escape("${"),  # Macro start with curly braces ${MACRO=VALUE}
-         TokenTypes.BRACE_MACRO_START),
-        (_escape("record"),
-         TokenTypes.RECORD),
-        (_escape("grecord"),
-         TokenTypes.RECORD),
-        (_escape("field"),
-         TokenTypes.FIELD),
-        (_escape("info"),
-         TokenTypes.INFO),
-        (_escape("alias"),
-         TokenTypes.ALIAS),
-        (_escape("("),
-         TokenTypes.L_BRACKET),
-        (_escape(")"),
-         TokenTypes.R_BRACKET),
-        (_escape("{"),
-         TokenTypes.L_BRACE),
-        (_escape("}"),
-         TokenTypes.R_BRACE),
-        (_escape(","),
-         TokenTypes.COMMA),
-        (_escape("="),
-         TokenTypes.EQUALS),
-        (r"(\".*?[^\\]\"|\"\")",  # Ignore escaped quotes within a string. Add special case for empty string
-         TokenTypes.QUOTED_STRING),
-        (r"(\s+)",
-         TokenTypes.WHITESPACE),
-        (r"([a-zA-Z0-9\-\_\.\:]+)",  # Alphanumeric, -, _, ., :
-         TokenTypes.LITERAL),
-        (_escape("#"),  # Mostly comments, but also things like $(MACRO=#) field(INPA, "blah") are valid...
-         TokenTypes.HASH),
-        (r"(.+)",  # Matches absolutely anything (as a last resort, for comment contents for example).
-         TokenTypes.UNKNOWN),
-    ])
+    TOKEN_MAPPING = OrderedDict(
+        [
+            (
+                _escape("$("),  # Macro start with brackets $(MACRO=VALUE)
+                TokenTypes.BRACKET_MACRO_START,
+            ),
+            (
+                _escape("${"),  # Macro start with curly braces ${MACRO=VALUE}
+                TokenTypes.BRACE_MACRO_START,
+            ),
+            (_escape("record"), TokenTypes.RECORD),
+            (_escape("grecord"), TokenTypes.RECORD),
+            (_escape("field"), TokenTypes.FIELD),
+            (_escape("info"), TokenTypes.INFO),
+            (_escape("alias"), TokenTypes.ALIAS),
+            (_escape("("), TokenTypes.L_BRACKET),
+            (_escape(")"), TokenTypes.R_BRACKET),
+            (_escape("{"), TokenTypes.L_BRACE),
+            (_escape("}"), TokenTypes.R_BRACE),
+            (_escape(","), TokenTypes.COMMA),
+            (_escape("="), TokenTypes.EQUALS),
+            (
+                # Ignore escaped quotes within a string. Add special case for empty string
+                r"(\".*?[^\\]\"|\"\")",
+                TokenTypes.QUOTED_STRING,
+            ),
+            (r"(\s+)", TokenTypes.WHITESPACE),
+            (
+                r"([a-zA-Z0-9\-\_\.\:]+)",  # Alphanumeric, -, _, ., :
+                TokenTypes.LITERAL,
+            ),
+            (
+                _escape("#"),  # Mostly comments,
+                # but also things like $(MACRO=#) field(INPA, "blah") are valid...
+                TokenTypes.HASH,
+            ),
+            (
+                # Matches absolutely anything (as a last resort, for comment contents for example).
+                r"(.+)",
+                TokenTypes.UNKNOWN,
+            ),
+        ]
+    )
 
     # Change to keep track of macro
     def __init__(self, file_contents):
@@ -117,8 +122,11 @@ class Lexer():
                         column += len(match_text)
                         break
                 else:
-                    raise DbSyntaxError("No matching rules found at {}:{}. Line contents: '{}'"
-                                        .format(linenum, column, line))
+                    raise DbSyntaxError(
+                        "No matching rules found at {}:{}. Line contents: '{}'".format(
+                            linenum, column, line
+                        )
+                    )
 
         yield Token(TokenTypes.EOF, len(lines), len(lines[len(lines) - 1]))
 

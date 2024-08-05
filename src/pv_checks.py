@@ -1,53 +1,120 @@
 import re
-import os
 from collections import defaultdict
 
 # list of those record types that should have a EGU field
 EGU_list = {
-    'ai', 'ao', 'calc', 'calcout', 'compress', 'dfanout', 'longin', 'longout',
-    'mbbo', 'mbboDirect', 'permissive', 'sel', 'seq', 'state', 'stringin',
-    'stringout', 'subArray', 'sub', 'waveform', 'archive', 'cpid', 'pid',
-    'steppermotor'
+    "ai",
+    "ao",
+    "calc",
+    "calcout",
+    "compress",
+    "dfanout",
+    "longin",
+    "longout",
+    "mbbo",
+    "mbboDirect",
+    "permissive",
+    "sel",
+    "seq",
+    "state",
+    "stringin",
+    "stringout",
+    "subArray",
+    "sub",
+    "waveform",
+    "archive",
+    "cpid",
+    "pid",
+    "steppermotor",
 }
 
-EGU_sub_list = {'longin', 'longout', 'ai', 'ao'}
+EGU_sub_list = {"longin", "longout", "ai", "ao"}
 
 # list of records that should has an ASG defined
-ASG_list = {'calc'}
+ASG_list = {"calc"}
 
 # list of the accepted units. Standard prefixes to these units are also
 # accepted and checked for below but we need to allow 'cm' explicitly as
 # it is a non-standard unit prefix for metre
 allowed_prefixable_units = {
-    'A', 'angstrom', 'au', 'bar', 'B', 'bit', 'byte', 'C', 'count', 'degree',
-    'eV', 'frame', 'g', 'G', 'hour', 'Hz', 'H', 'inch', 'interrupt', 'K', 'L',
-    'm', 'min', 'minute', 'ohm', 'Oersted', '%', 'photon', 'pixel', 'radian',
-    's', 'torr', 'step', 'T', 'V', 'Pa', 'deg', 'stp', 'W', 'N', 'F', 'event'
+    "A",
+    "angstrom",
+    "au",
+    "bar",
+    "B",
+    "bit",
+    "byte",
+    "C",
+    "count",
+    "degree",
+    "eV",
+    "frame",
+    "g",
+    "G",
+    "hour",
+    "Hz",
+    "H",
+    "inch",
+    "interrupt",
+    "K",
+    "L",
+    "m",
+    "min",
+    "minute",
+    "ohm",
+    "Oersted",
+    "%",
+    "photon",
+    "pixel",
+    "radian",
+    "s",
+    "torr",
+    "step",
+    "T",
+    "V",
+    "Pa",
+    "deg",
+    "stp",
+    "W",
+    "N",
+    "F",
+    "event",
 }
 
-allowed_unit_prefixes = {'T', 'G', 'M', 'k', 'm', 'u', 'n', 'p', 'f'}
+allowed_unit_prefixes = {"T", "G", "M", "k", "m", "u", "n", "p", "f"}
 
-allowed_non_prefixable_units = {'cm', 'cdeg', 'day', 'rpm', 'rps', 'psig', 'psi', 'ppm', 'pp100k', 'dBm'}
+allowed_non_prefixable_units = {
+    "cm",
+    "cdeg",
+    "day",
+    "rpm",
+    "rps",
+    "psig",
+    "psi",
+    "ppm",
+    "pp100k",
+    "dBm",
+}
 
 allowed_standalone_units = {
-    'cdeg/ss',  # Needed by the GORC. Latter is a special case because
+    "cdeg/ss",  # Needed by the GORC. Latter is a special case because
     # cdeg/s^2 too long
-    'uA hour',  # Needed by the ISISDAE
+    "uA hour",  # Needed by the ISISDAE
 }
 
 
 def process_units(processed_unit):
     # remove 1\ as this is ok as a unit as in 1\m but 1 on its own is not ok
-    processed_unit = re.sub(r'1/', '', processed_unit).replace(" ", "")
+    processed_unit = re.sub(r"1/", "", processed_unit).replace(" ", "")
     # split unit amalgamations and remove powers
-    units_with_powers = re.split(r'[/ ()]', processed_unit)
+    units_with_powers = re.split(r"[/ ()]", processed_unit)
     return units_with_powers
 
 
 def expand_macro(raw_unit):
     # expand macro $(A) to a valid unit, expand $(A=B) to B
-    processed_unit = re.sub(r'\$[({].*?=(.*)?[})]', r'\1', raw_unit)
-    processed_unit = re.sub(r'\$[({].*?[})]', 'm', processed_unit)
+    processed_unit = re.sub(r"\$[({].*?=(.*)?[})]", r"\1", raw_unit)
+    processed_unit = re.sub(r"\$[({].*?[})]", "m", processed_unit)
     return processed_unit
 
 
@@ -55,10 +122,12 @@ def is_prefixed_unit(unit):
     """
     This method checks if a given unit has a prefix
     """
-    unit_checklist = [len(unit) > len(base_unit) and
-                      unit[-len(base_unit):] == base_unit and
-                      unit[:-len(base_unit)] in allowed_unit_prefixes
-                      for base_unit in allowed_prefixable_units]
+    unit_checklist = [
+        len(unit) > len(base_unit)
+        and unit[-len(base_unit) :] == base_unit
+        and unit[: -len(base_unit)] in allowed_unit_prefixes
+        for base_unit in allowed_prefixable_units
+    ]
     return any(unit_checklist)
 
 
@@ -75,17 +144,18 @@ def allowed_unit(raw_unit):
     # allow power but not negative power so m^-1.
     # Reason is there is no latex so 1/m is much clearer here
     for u in units_with_powers:
-        if '^' in u:
-            base, expo = u.split('^')
-            if expo[:1] == '-':
+        if "^" in u:
+            base, expo = u.split("^")
+            if expo[:1] == "-":
                 return False
             else:
                 units_with_powers = [base]
 
     units = filter(None, units_with_powers)
-    return all(u in allowed_non_prefixable_units or
-               u in allowed_prefixable_units or
-               is_prefixed_unit(u) for u in units)
+    return all(
+        u in allowed_non_prefixable_units or u in allowed_prefixable_units or is_prefixed_unit(u)
+        for u in units
+    )
 
 
 def build_failure_message(basemessage, submessages):
@@ -100,8 +170,7 @@ def build_failure_message(basemessage, submessages):
     Returns:
         A formatted string containing the base and sub messages.
     """
-    return "{}\n{}".format(basemessage, "\n".
-                           join("   -> " + s for s in submessages))
+    return "{}\n{}".format(basemessage, "\n".join("   -> " + s for s in submessages))
 
 
 def get_multiple_instances(db):
@@ -132,8 +201,9 @@ def get_multiple_properties_on_pvs(db):
             dupes = set([i for i in fields if fields.count(i) > 1])
             dupe_vals = {rec.get_field(name).has_macro for name in dupes}
             if not all(dupe_vals):
-                failures.append("Multiple instances of fields {} on {}".
-                                format(','.join(dupes), rec))
+                failures.append(
+                    "Multiple instances of fields {} on {}".format(",".join(dupes), rec)
+                )
     return failures
 
 
@@ -144,8 +214,7 @@ def get_interest_units(db):
     failures = []
 
     for rec in db.records:
-        if rec.is_interest() and not rec.is_disable() and \
-                (rec.get_type() in EGU_sub_list):
+        if rec.is_interest() and not rec.is_disable() and (rec.get_type() in EGU_sub_list):
             unit = rec.get_field_value("EGU")
             if unit is None:
                 failures.append("Missing units on {}".format(rec))
@@ -178,7 +247,7 @@ def get_desc_length(db):
         desc = rec.get_field_value("DESC")
         if desc is not None:
             # remove macros
-            desc = re.sub(r'\$\([^)]*\)', '', desc)
+            desc = re.sub(r"\$\([^)]*\)", "", desc)
             if len(desc) > 40:
                 failures.append("Description too long on {}".format(rec))
     return failures
@@ -221,8 +290,8 @@ def get_log_info_tags(db):
     """
     failures = []
 
-    # This originally was trying to check for duplicate logs etc. across multiple files simultaneously, but was failing
-    # possible future change?
+    # This originally was trying to check for duplicate logs etc.
+    # across multiple files simultaneously, but was failing possible future change?
 
     log_fields = {}
     logging_period = None
@@ -233,20 +302,21 @@ def get_log_info_tags(db):
             info_value = info.value
             if info_name.startswith("log"):
                 check_repeated_log(failures, info_name, info_value, log_fields, rec)
-                logging_period = check_changed_period(failures, info_name, info_value, logging_period, rec)
+                logging_period = check_changed_period(
+                    failures, info_name, info_value, logging_period, rec
+                )
     return failures
 
 
 def check_changed_period(failures, info_name, info_value, logging_period, rec):
-    if info_name == "log_period_seconds" or \
-            info_name == "log_period_pv":
+    if info_name == "log_period_seconds" or info_name == "log_period_pv":
         if logging_period is None:
             return info_value
         else:
             failures.append(
-                "Invalid logging config: "
-                "{source} alters the logging period "
-                "type".format(source=rec, tag=info_name)
+                "Invalid logging config: " "{source} alters the logging period " "type".format(
+                    source=rec,
+                )
             )
     return logging_period
 
@@ -255,17 +325,24 @@ def check_repeated_log(failures, info_name, info_value, log_fields, rec):
     previous_source = log_fields.get(info_name, None)
     if previous_source is not None:
         failures.append(
-            "Invalid logging config: "
-            "{source} repeats the log info tag "
-            "{tag}".format(source=rec, tag=info_name)
+            "Invalid logging config: " "{source} repeats the log info tag " "{tag}".format(
+                source=rec, tag=info_name
+            )
         )
     else:
         log_fields[info_name] = info_value
 
 
 # List of Errors to check for.
-check_error = [get_interest_descriptions, get_units_valid, get_desc_length, get_interest_calc_readonly,
-               get_interest_units, get_multiple_properties_on_pvs, get_log_info_tags, ]
+check_error = [
+    get_interest_descriptions,
+    get_units_valid,
+    get_desc_length,
+    get_interest_calc_readonly,
+    get_interest_units,
+    get_multiple_properties_on_pvs,
+    get_log_info_tags,
+]
 # List of Warnings to check for.
 check_warning = [get_multiple_instances]
 

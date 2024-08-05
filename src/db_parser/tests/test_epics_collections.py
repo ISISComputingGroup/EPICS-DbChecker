@@ -1,5 +1,6 @@
 import unittest
-import src.db_parser.EPICS_collections as ec
+
+import src.db_parser.epics_collections as ec
 
 
 class TestDBs(unittest.TestCase):
@@ -10,9 +11,13 @@ class TestDBs(unittest.TestCase):
         self.run_db_len_check([ec.Record("rec_type", "pv", [], [], [])])
 
     def test_db_len_longer(self):
-        self.run_db_len_check([ec.Record("rec_type", "pv", [], [], []),
-                               ec.Record("rec_type", "pv2", [], [], []),
-                               ec.Record("rec_type", "pv3", [], [], [])])
+        self.run_db_len_check(
+            [
+                ec.Record("rec_type", "pv", [], [], []),
+                ec.Record("rec_type", "pv2", [], [], []),
+                ec.Record("rec_type", "pv3", [], [], []),
+            ]
+        )
 
     def run_db_len_check(self, record):
         db = ec.Db("", record)
@@ -22,9 +27,13 @@ class TestDBs(unittest.TestCase):
 class TestRecords(unittest.TestCase):
     name_list = ["field1", "field2", "field3", "field4", "field5"]
     value_list = [0, 1, 2, 3, 4]
-    field_list = [ec.Field(name_list[0], value_list[0]), ec.Field(name_list[1], value_list[1]),
-                  ec.Field(name_list[2], value_list[2]), ec.Field(name_list[3], value_list[3]),
-                  ec.Field(name_list[4], value_list[4])]
+    field_list = [
+        ec.Field(name_list[0], value_list[0]),
+        ec.Field(name_list[1], value_list[1]),
+        ec.Field(name_list[2], value_list[2]),
+        ec.Field(name_list[3], value_list[3]),
+        ec.Field(name_list[4], value_list[4]),
+    ]
 
     def test_is_sim_true(self):
         test_record = ec.Record("test", "ISSIM:1", [], [], [])
@@ -95,7 +104,9 @@ class TestRecords(unittest.TestCase):
         self.assertFalse(test_record.get_info(self.name_list[0]))
 
     def test_is_interest_true(self):
-        test_record = ec.Record("test", "TEST:1", self.field_list + [ec.Field("INTEREST", 0)], [], [])
+        test_record = ec.Record(
+            "test", "TEST:1", self.field_list + [ec.Field("INTEREST", 0)], [], []
+        )
         self.assertTrue(test_record.is_interest())
 
     def test_is_interest_false(self):
