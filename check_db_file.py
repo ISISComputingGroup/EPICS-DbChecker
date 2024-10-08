@@ -3,6 +3,7 @@ import glob
 import os
 import sys
 import unittest
+from typing import Iterator
 
 import xmlrunner
 
@@ -60,6 +61,7 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "settings_xml.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
     "testParseJSON.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
     "Lakeshore340.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
+    "site-packages",  # Don't look inside site-packages dirs
 ]
 
 # For the stricter checks, we only care about dbs written by ISIS
@@ -93,7 +95,9 @@ output_dir = ""
 
 
 # return False if all OK, True on error
-def check_files(db_files, strict, verbose, strict_error=False):
+def check_files(
+    db_files: list[str], strict: list[str], verbose: bool, strict_error: bool = False
+) -> bool:
     failed_to_parse = []
     suite = unittest.TestSuite()
     for filename in db_files:
@@ -124,12 +128,16 @@ def check_files(db_files, strict, verbose, strict_error=False):
     return False if success and len(failed_to_parse) == 0 else True
 
 
-def append_reduced_file_list(directory_to_walk, directory_to_ignore, list):
+def append_reduced_file_list(
+    directory_to_walk: Iterator[tuple[str, list[str], list[str]]],
+    directory_to_ignore: list[str],
+    mutable_list: list[str],
+) -> None:
     for root, dirs, files in directory_to_walk:
         dirs[:] = [d for d in dirs if d not in directory_to_ignore]
         for file in files:
             if file.endswith(".db") and file not in directory_to_ignore:
-                list.append(os.path.join(root, file))
+                mutable_list.append(os.path.join(root, file))
 
 
 if __name__ == "__main__":
