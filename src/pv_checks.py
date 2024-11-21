@@ -100,6 +100,7 @@ allowed_standalone_units = {
     "cdeg/ss",  # Needed by the GORC. Latter is a special case because
     # cdeg/s^2 too long
     "uA hour",  # Needed by the ISISDAE
+    "evnt/trg", # for CAENMCA
 }
 
 
