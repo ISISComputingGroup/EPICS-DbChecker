@@ -16,6 +16,7 @@ class TokenTypes(object):
     R_BRACE = "R_BRACE"
     COMMA = "COMMA"
     EQUALS = "EQUALS"
+    JSON_VALUE = "JSON_VALUE"
 
     # Values
     QUOTED_STRING = "QUOTED_STRING"

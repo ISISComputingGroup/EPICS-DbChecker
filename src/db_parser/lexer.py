@@ -93,6 +93,10 @@ class Lexer:
                 TokenTypes.HASH,
             ),
             (
+                r"([a-zA-Z0-9\:\{\}\[\]\,\ \"\']+)",  # Alphanumeric, -, _, ., :
+                TokenTypes.JSON_VALUE,
+            ),
+            (
                 # Matches absolutely anything (as a last resort, for comment contents for example).
                 r"(.+)",
                 TokenTypes.UNKNOWN,

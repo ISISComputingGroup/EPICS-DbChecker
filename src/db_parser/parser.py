@@ -90,7 +90,16 @@ class Parser(object):
                 self.macro()
         return ret
 
-    def value(self):
+    def relaxed_json(self):
+        while self.current_token.type in (
+            TokenTypes.L_BRACE,
+            TokenTypes.JSON_VALUE,
+            TokenTypes.LITERAL,
+            TokenTypes.R_BRACE,
+        ):
+            self.consume(self.current_token.type)
+
+    def value(self, allow_json=False):
         """
         Handler for values which are allowed to be quoted or not.
         Examples:
@@ -103,6 +112,8 @@ class Parser(object):
             return self.consume(TokenTypes.QUOTED_STRING)[1:-1]  # Strip quotes
         elif self.current_token.type == TokenTypes.LITERAL or self.next_token_is_macro():
             return self.literal_or_macro()
+        elif allow_json and self.current_token.type == TokenTypes.L_BRACE:
+            return self.relaxed_json()
         else:
             self.raise_error("Expected either a literal or a string literal.")
 
@@ -119,7 +130,7 @@ class Parser(object):
         with self.bracket_delimited_block():
             key = self.value()
             self.consume(TokenTypes.COMMA)
-            value = self.value()
+            value = self.value(allow_json=True)
         return key, value
 
     def field(self, has_macro=False):
