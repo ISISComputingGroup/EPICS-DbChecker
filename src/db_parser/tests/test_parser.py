@@ -382,4 +382,4 @@ class ParserTests(unittest.TestCase):
         )
 
         parsed_macro = Parser(lexer).macro()
-        self.assertEquals(parsed_macro, "")
+        self.assertEqual(parsed_macro, "")

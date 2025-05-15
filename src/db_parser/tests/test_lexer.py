@@ -202,6 +202,6 @@ class LexerTests(unittest.TestCase):
         """
         tokens = get_tokens_list(Lexer(content))
 
-        self.assertEquals(tokens[0].type, TokenTypes.HASH)
-        self.assertEquals(tokens[-2].type, TokenTypes.RECORD)
-        self.assertEquals(tokens[-1].type, TokenTypes.EOF)
+        self.assertEqual(tokens[0].type, TokenTypes.HASH)
+        self.assertEqual(tokens[-2].type, TokenTypes.RECORD)
+        self.assertEqual(tokens[-1].type, TokenTypes.EOF)
