@@ -63,6 +63,7 @@ DIRECTORIES_TO_ALWAYS_IGNORE = [
     "Lakeshore340.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
     "isisdae.db",  # Uses EPICS 7 JSON syntax which is not yet supported in the parser
     "site-packages",  # Don't look inside site-packages dirs
+    "ip",  # External support module
 ]
 
 # For the stricter checks, we only care about dbs written by ISIS
